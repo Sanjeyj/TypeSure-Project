@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="ta" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TypeSure — Tamil Spelling Detection &amp; Correction</title>
+  <meta name="description" content="TypeSure is a Tamil-language typing assistant that identifies potential spelling mistakes and suggests corrections using dictionary lookup and edit-distance algorithms." />
+  <meta name="keywords" content="Tamil spelling checker, Tamil typing assistant, spell check, தமிழ் எழுத்துபிழை, Tamil language tool" />
+  <meta name="author" content="TypeSure — B.Sc. Computer Science Project" />
+  <link rel="canonical" href="http://localhost:5000/" />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="TypeSure — Tamil Spelling Detection &amp; Correction" />
+  <meta property="og:description" content="A Tamil-language typing assistant that identifies spelling mistakes and suggests corrections. No internet connection required." />
+  <meta property="og:url" content="http://localhost:5000/" />
+  <meta property="og:locale" content="ta_IN" />
+  <meta property="og:site_name" content="TypeSure" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="TypeSure — Tamil Spelling Checker" />
+  <meta name="twitter:description" content="Tamil spelling detection and correction using dictionary lookup and edit-distance algorithms." />
+
+  <!-- Google Fonts: Inter (UI) + Noto Sans Tamil (Tamil text) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Tamil:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     HEADER
+═══════════════════════════════════════════════════════════════════════════ -->
+<header class="site-header">
+  <div class="container header-inner">
+    <div class="brand">
+      <div class="brand-logo" aria-hidden="true">
+        <span class="logo-icon">ச</span>
+      </div>
+      <div class="brand-text">
+        <span class="brand-name">TypeSure</span>
+        <span class="brand-subtitle">Tamil Spelling Assistant</span>
+      </div>
+    </div>
+    <nav class="site-nav" aria-label="Main navigation">
+      <a href="/" class="nav-link active" id="nav-home">Home</a>
+      <a href="/about" class="nav-link" id="nav-about">About</a>
+      <button class="btn btn-outline btn-sm" id="btn-import-open" title="Import additional Tamil word list">
+        📥 Import Dictionary
+      </button>
+    </nav>
+    <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     HERO
+═══════════════════════════════════════════════════════════════════════════ -->
+<section class="hero" aria-labelledby="hero-title">
+  <div class="container hero-content">
+    <div class="hero-badge">🎓 B.Sc. Computer Science Final-Year Project</div>
+    <h1 id="hero-title" class="hero-title">
+      Tamil Spelling Detection<br />
+      <span class="hero-accent">&amp; Correction</span>
+    </h1>
+    <p class="hero-desc">
+      Type or paste Tamil text below. TypeSure will identify potential spelling
+      issues and suggest corrections using a local dictionary and edit-distance
+      algorithms — no internet connection required.
+    </p>
+    <div class="hero-features">
+      <div class="feature-chip">📖 Dictionary Lookup</div>
+      <div class="feature-chip">📐 Edit Distance</div>
+      <div class="feature-chip">🔒 Fully Local</div>
+      <div class="feature-chip">⚡ Instant Results</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     MAIN CONTENT
+═══════════════════════════════════════════════════════════════════════════ -->
+<main class="main-content container" id="main">
+
+  <!-- ─── Privacy Notice ──────────────────────────────────────────────────── -->
+  <div class="notice notice-info" id="privacy-notice">
+    <span class="notice-icon">🔒</span>
+    <div>
+      <strong>Privacy:</strong> Your text is processed locally on this server and
+      is <em>not</em> sent to any external service. By default, only statistics
+      (word count, issue count) are stored — not your full text.
+      <button class="notice-close" id="close-privacy-notice" aria-label="Dismiss privacy notice">✕</button>
+    </div>
+  </div>
+
+  <!-- ─── Text Editor Card ─────────────────────────────────────────────────── -->
+  <section class="card editor-card" aria-labelledby="editor-heading">
+    <div class="card-header">
+      <h2 id="editor-heading" class="card-title">
+        <span class="card-icon">✏️</span> Tamil Text Editor
+      </h2>
+      <div class="editor-meta" id="editor-meta" aria-live="polite">
+        <span id="char-count">0 characters</span>
+        <span class="meta-sep">·</span>
+        <span id="word-count">0 words</span>
+      </div>
+    </div>
+
+    <div class="editor-wrap">
+      <textarea
+        id="tamil-input"
+        class="tamil-editor"
+        placeholder="இங்கே தமிழ் உரையை தட்டச்சு செய்யுங்கள் அல்லது ஒட்டுங்கள்…"
+        aria-label="Tamil text input area"
+        spellcheck="false"
+        autocorrect="off"
+        autocomplete="off"
+        rows="8"
+      ></textarea>
+    </div>
+
+    <div class="editor-footer">
+      <div class="sample-btns" aria-label="Load sample text">
+        <span class="sample-label">Samples:</span>
+        <button class="btn btn-ghost btn-sm" id="sample-1" data-sample="1">Sample 1 (Correct)</button>
+        <button class="btn btn-ghost btn-sm" id="sample-2" data-sample="2">Sample 2 (With errors)</button>
+        <button class="btn btn-ghost btn-sm" id="sample-3" data-sample="3">Sample 3 (Mixed)</button>
+      </div>
+      <div class="action-btns">
+        <button class="btn btn-ghost btn-sm" id="btn-clear" aria-label="Clear all text">🗑️ Clear</button>
+        <button class="btn btn-primary" id="btn-check" aria-label="Check spelling">
+          <span class="btn-icon">🔍</span> Check Spelling
+        </button>
+      </div>
+    </div>
+
+    <!-- Store text opt-in -->
+    <div class="store-text-row">
+      <label class="checkbox-label" for="store-text-toggle">
+        <input type="checkbox" id="store-text-toggle" />
+        <span>Save my full text in history (optional)</span>
+      </label>
+    </div>
+  </section>
+
+  <!-- ─── Loading State ────────────────────────────────────────────────────── -->
+  <div class="loading-overlay" id="loading-overlay" aria-hidden="true">
+    <div class="spinner"></div>
+    <p>Analysing text…</p>
+  </div>
+
+  <!-- ─── Error Banner ─────────────────────────────────────────────────────── -->
+  <div class="notice notice-error hidden" id="error-banner" role="alert">
+    <span class="notice-icon">⚠️</span>
+    <span id="error-message">An error occurred.</span>
+  </div>
+
+  <!-- ─── Statistics Cards ──────────────────────────────────────────────────── -->
+  <section class="stats-section hidden" id="stats-section" aria-label="Check statistics">
+    <h2 class="section-title">📊 Check Statistics</h2>
+    <div class="stats-grid">
+      <div class="stat-card" id="stat-total">
+        <div class="stat-value" id="stat-total-val">—</div>
+        <div class="stat-label">Words Scanned</div>
+      </div>
+      <div class="stat-card stat-card--warning" id="stat-issues">
+        <div class="stat-value" id="stat-issues-val">—</div>
+        <div class="stat-label">Potential Issues</div>
+      </div>
+      <div class="stat-card stat-card--success" id="stat-recognized">
+        <div class="stat-value" id="stat-recognized-val">—</div>
+        <div class="stat-label">Recognized Words</div>
+      </div>
+      <div class="stat-card stat-card--accent" id="stat-coverage">
+        <div class="stat-value" id="stat-coverage-val">—</div>
+        <div class="stat-label">Dictionary Coverage*</div>
+        <div class="stat-note">*Coverage = words found in this prototype's dictionary, not spelling accuracy</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Results: Issues & Suggestions ────────────────────────────────────── -->
+  <section class="card results-card hidden" id="results-section" aria-labelledby="results-heading">
+    <div class="card-header">
+      <h2 id="results-heading" class="card-title">
+        <span class="card-icon">📋</span> Potential Issues &amp; Suggestions
+      </h2>
+      <div class="results-actions">
+        <button class="btn btn-ghost btn-sm" id="btn-undo" aria-label="Undo all corrections" disabled>
+          ↩️ Undo
+        </button>
+        <button class="btn btn-outline btn-sm" id="btn-recheck" aria-label="Re-check corrected text">
+          🔄 Recheck
+        </button>
+        <button class="btn btn-outline btn-sm" id="btn-export" aria-label="Download report">
+          📥 Export Report
+        </button>
+      </div>
+    </div>
+
+    <div id="no-issues-msg" class="empty-state hidden">
+      <div class="empty-icon">✅</div>
+      <p class="empty-title">All words recognized!</p>
+      <p class="empty-sub">Every Tamil word in your text was found in the dictionary.</p>
+    </div>
+
+    <div id="issues-list" class="issues-list"></div>
+  </section>
+
+  <!-- ─── Corrected Text Preview ────────────────────────────────────────────── -->
+  <section class="card preview-card hidden" id="preview-section" aria-labelledby="preview-heading">
+    <div class="card-header">
+      <h2 id="preview-heading" class="card-title">
+        <span class="card-icon">📄</span> Corrected Text Preview
+      </h2>
+      <button class="btn btn-ghost btn-sm" id="btn-copy-corrected" aria-label="Copy corrected text">
+        📋 Copy
+      </button>
+    </div>
+    <div id="corrected-preview" class="corrected-preview tamil-text"></div>
+    <div class="corrections-applied-row">
+      <span id="corrections-count">0 corrections applied this session</span>
+    </div>
+  </section>
+
+  <!-- ─── History ───────────────────────────────────────────────────────────── -->
+  <section class="card history-card" id="history-section" aria-labelledby="history-heading">
+    <div class="card-header">
+      <h2 id="history-heading" class="card-title">
+        <span class="card-icon">🕒</span> Recent Check History
+      </h2>
+      <button class="btn btn-ghost btn-sm btn-danger" id="btn-clear-history" aria-label="Clear all history">
+        🗑️ Clear History
+      </button>
+    </div>
+    <div id="history-list" class="history-list">
+      <div class="empty-state">
+        <div class="empty-icon">📭</div>
+        <p class="empty-title">No history yet</p>
+        <p class="empty-sub">Your check results will appear here.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Limitations Notice ───────────────────────────────────────────────── -->
+  <section class="notice notice-warn limitations-notice" aria-label="Limitations">
+    <span class="notice-icon">ℹ️</span>
+    <div>
+      <strong>Limitations:</strong> TypeSure uses a starter dictionary of common
+      Tamil words. It does <em>not</em> understand Tamil grammar, sentence context,
+      or morphological inflections beyond what is listed in the dictionary.
+      Unknown words may simply be valid words not yet in the dictionary, not
+      confirmed spelling errors. Always review suggestions before accepting them.
+    </div>
+  </section>
+
+</main>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     FOOTER
+═══════════════════════════════════════════════════════════════════════════ -->
+<footer class="site-footer">
+  <div class="container footer-inner">
+    <p class="footer-brand">TypeSure</p>
+    <p class="footer-desc">
+      A B.Sc. Computer Science final-year project · Tamil Spelling Detection &amp; Correction System
+    </p>
+    <p class="footer-disclaimer">
+      &copy; <span id="copyright-year"></span> Student prototype. Dictionary coverage is limited. Not for production use.
+    </p>
+  </div>
+</footer>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     MODALS
+═══════════════════════════════════════════════════════════════════════════ -->
+
+<!-- Dictionary Import Modal -->
+<div class="modal-overlay hidden" id="import-modal" role="dialog" aria-modal="true" aria-labelledby="import-modal-title">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="import-modal-title">📥 Import Dictionary</h3>
+      <button class="modal-close" id="import-modal-close" aria-label="Close modal">✕</button>
+    </div>
+    <div class="modal-body">
+      <p>Upload a <strong>UTF-8 text file</strong> with one Tamil word per line to expand the dictionary.</p>
+      <ul class="import-rules">
+        <li>Lines beginning with <code>#</code> are treated as comments.</li>
+        <li>Maximum file size: 2 MB.</li>
+        <li>Maximum words per file: 50,000.</li>
+        <li>Words without any Tamil character will be skipped.</li>
+        <li>Duplicates are silently ignored.</li>
+      </ul>
+      <div class="file-drop-zone" id="file-drop-zone" tabindex="0" role="button" aria-label="Click or drag a .txt file here">
+        <div class="drop-icon">📂</div>
+        <p>Click or drag a <code>.txt</code> file here</p>
+        <input type="file" id="dict-file-input" accept=".txt" class="hidden" aria-label="Choose dictionary file" />
+      </div>
+      <div class="import-result hidden" id="import-result"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="btn-import-cancel">Cancel</button>
+      <button class="btn btn-primary" id="btn-import-confirm" disabled>Import</button>
+    </div>
+  </div>
+</div>
+
+<!-- Clear History Confirmation Modal -->
+<div class="modal-overlay hidden" id="clear-history-modal" role="dialog" aria-modal="true" aria-labelledby="clear-history-title">
+  <div class="modal modal--sm">
+    <div class="modal-header">
+      <h3 id="clear-history-title">🗑️ Clear History</h3>
+      <button class="modal-close" id="clear-history-modal-close" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <p>Are you sure you want to delete all check history records? This action cannot be undone.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="btn-clear-history-cancel">Cancel</button>
+      <button class="btn btn-danger" id="btn-clear-history-confirm">Yes, Clear All</button>
+    </div>
+  </div>
+</div>
+
+<script src="/static/js/app.js"></script>
+</body>
+</html>

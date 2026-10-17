@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>500 — Server Error | TypeSure</title>
+  <meta name="robots" content="noindex" />
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/css/style.css" />
+  <style>
+    .error-page {
+      min-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: var(--space-xl);
+    }
+    .error-code {
+      font-size: clamp(5rem, 15vw, 8rem);
+      font-weight: 700;
+      color: var(--color-warning);
+      line-height: 1;
+      margin-bottom: var(--space-md);
+    }
+    .error-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--color-text);
+      margin-bottom: var(--space-sm);
+    }
+    .error-desc {
+      color: var(--color-text-muted);
+      margin-bottom: var(--space-xl);
+      max-width: 440px;
+    }
+    .error-actions { display: flex; gap: var(--space-md); flex-wrap: wrap; justify-content: center; }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container header-inner">
+    <div class="brand">
+      <div class="brand-logo" aria-hidden="true">
+        <span class="logo-icon">ச</span>
+      </div>
+      <div class="brand-text">
+        <span class="brand-name">TypeSure</span>
+        <span class="brand-subtitle">Tamil Spelling Assistant</span>
+      </div>
+    </div>
+    <nav class="site-nav" aria-label="Main navigation">
+      <a href="/" class="nav-link" id="nav-home">Home</a>
+      <a href="/about" class="nav-link" id="nav-about">About</a>
+    </nav>
+    <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main>
+  <div class="error-page">
+    <div class="error-code">500</div>
+    <h1 class="error-title">Internal Server Error</h1>
+    <p class="error-desc">Something went wrong on our end. Please try again in a moment.</p>
+    <div class="error-actions">
+      <a href="/" class="btn btn-primary">← Back to Home</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-inner">
+    <p class="footer-brand">TypeSure</p>
+    <p class="footer-desc">B.Sc. Computer Science Final-Year Project · Tamil Spelling Detection &amp; Correction</p>
+    <p class="footer-disclaimer">© <span id="copyright-year"></span> Student prototype — not for production use.</p>
+  </div>
+</footer>
+
+<script src="/static/js/app.js"></script>
+</body>
+</html>

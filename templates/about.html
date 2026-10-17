@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>About TypeSure — Tamil Spelling Assistant</title>
+  <meta name="description" content="Learn about the TypeSure Tamil spelling detection and correction system — algorithms, limitations, and project background." />
+  <meta name="keywords" content="TypeSure about, Tamil spell checker algorithm, Levenshtein distance Tamil, edit distance spell check" />
+  <meta name="author" content="TypeSure — B.Sc. Computer Science Project" />
+  <link rel="canonical" href="http://localhost:5000/about" />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="About TypeSure — Tamil Spelling Assistant" />
+  <meta property="og:description" content="Learn about TypeSure — algorithms, limitations, and project background." />
+  <meta property="og:url" content="http://localhost:5000/about" />
+  <meta property="og:site_name" content="TypeSure" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="About TypeSure" />
+  <meta name="twitter:description" content="Tamil spelling detection and correction system built as a B.Sc. Computer Science project." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Tamil:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container header-inner">
+    <div class="brand">
+      <div class="brand-logo" aria-hidden="true">
+        <span class="logo-icon">ச</span>
+      </div>
+      <div class="brand-text">
+        <span class="brand-name">TypeSure</span>
+        <span class="brand-subtitle">Tamil Spelling Assistant</span>
+      </div>
+    </div>
+    <nav class="site-nav" aria-label="Main navigation">
+      <a href="/" class="nav-link" id="nav-home">Home</a>
+      <a href="/about" class="nav-link active" id="nav-about">About</a>
+    </nav>
+    <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main class="main-content container about-page" id="main">
+
+  <section class="about-hero">
+    <h1 class="about-title">About TypeSure</h1>
+    <p class="about-intro">
+      TypeSure is a Tamil-language spelling detection and correction prototype
+      built as a B.Sc. Computer Science final-year project. It helps users
+      identify potential spelling mistakes in Tamil text and receive suggestions
+      using a combination of dictionary lookup and string-similarity algorithms.
+    </p>
+  </section>
+
+  <div class="about-grid">
+
+    <section class="card about-card" aria-labelledby="objectives-heading">
+      <h2 id="objectives-heading" class="card-title"><span class="card-icon">🎯</span> Objectives</h2>
+      <ul class="about-list">
+        <li>Provide a simple, explainable Tamil spelling assistant.</li>
+        <li>Work entirely offline without paid APIs or cloud services.</li>
+        <li>Demonstrate practical application of NLP algorithms for Indian languages.</li>
+        <li>Help students and general users type Tamil more confidently.</li>
+      </ul>
+    </section>
+
+    <section class="card about-card" aria-labelledby="algo-heading">
+      <h2 id="algo-heading" class="card-title"><span class="card-icon">📐</span> Algorithms Used</h2>
+
+      <div class="algo-item">
+        <h3>1. Unicode NFC Normalization</h3>
+        <p>
+          Tamil text on different systems may store the same character in
+          different binary forms. NFC (Canonical Composition) ensures consistent
+          representation before any comparison is made.
+        </p>
+      </div>
+
+      <div class="algo-item">
+        <h3>2. Tokenization</h3>
+        <p>
+          The input text is split into spans using regular expressions that
+          respect Tamil Unicode ranges (U+0B80–U+0BFF). Punctuation, spaces,
+          numbers, and English words are separated and preserved — they are
+          never passed to the Tamil spell checker.
+        </p>
+      </div>
+
+      <div class="algo-item">
+        <h3>3. Dictionary Lookup (O(1) set lookup)</h3>
+        <p>
+          Each Tamil token is checked against an in-memory Python
+          <code>set</code>. Set membership testing is O(1) average case,
+          making the dictionary check very fast even for long texts.
+        </p>
+      </div>
+
+      <div class="algo-item">
+        <h3>4. Levenshtein Edit Distance</h3>
+        <p>
+          For unknown words, the Wagner–Fischer dynamic-programming algorithm
+          computes the minimum number of single-character edits (insertions,
+          deletions, substitutions) required to transform one string into
+          another. A threshold of ≤ 2 is used to avoid unrelated suggestions.
+        </p>
+        <div class="algo-example">
+          <strong>Example:</strong>
+          <code class="tamil-text">வணககம்</code> → distance 2 →
+          <code class="tamil-text">வணக்கம்</code>
+        </div>
+      </div>
+
+      <div class="algo-item">
+        <h3>5. Candidate Ranking</h3>
+        <p>
+          Candidates are sorted by edit distance (ascending), then
+          alphabetically as a tiebreaker. Up to 5 suggestions are returned.
+          A length pre-filter eliminates dictionary words whose length differs
+          by more than the threshold before the expensive distance computation.
+        </p>
+      </div>
+    </section>
+
+    <section class="card about-card" aria-labelledby="stack-heading">
+      <h2 id="stack-heading" class="card-title"><span class="card-icon">🛠️</span> Technology Stack</h2>
+      <div class="tech-grid">
+        <div class="tech-item">
+          <span class="tech-icon">🐍</span>
+          <strong>Python 3.10+</strong>
+          <span>Backend &amp; algorithms</span>
+        </div>
+        <div class="tech-item">
+          <span class="tech-icon">🌶️</span>
+          <strong>Flask</strong>
+          <span>Web framework</span>
+        </div>
+        <div class="tech-item">
+          <span class="tech-icon">🗄️</span>
+          <strong>SQLite</strong>
+          <span>Check history storage</span>
+        </div>
+        <div class="tech-item">
+          <span class="tech-icon">🌐</span>
+          <strong>HTML5 / CSS3 / JS</strong>
+          <span>Frontend (no frameworks)</span>
+        </div>
+        <div class="tech-item">
+          <span class="tech-icon">🔤</span>
+          <strong>Noto Sans Tamil</strong>
+          <span>Tamil Unicode font</span>
+        </div>
+        <div class="tech-item">
+          <span class="tech-icon">📚</span>
+          <strong>unicodedata</strong>
+          <span>NFC normalization</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card about-card" aria-labelledby="db-heading">
+      <h2 id="db-heading" class="card-title"><span class="card-icon">🗄️</span> Database Schema</h2>
+      <pre class="code-block"><code>CREATE TABLE checks (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    created_at  TEXT    NOT NULL,   -- ISO-8601 UTC
+    word_count  INTEGER NOT NULL,   -- Tamil words scanned
+    issue_count INTEGER NOT NULL,   -- potential issues found
+    corrections INTEGER NOT NULL DEFAULT 0,
+    store_text  INTEGER NOT NULL DEFAULT 0,  -- 1 = user opted in
+    input_text  TEXT    -- NULL unless store_text = 1
+);</code></pre>
+    </section>
+
+    <section class="card about-card" aria-labelledby="limits-heading">
+      <h2 id="limits-heading" class="card-title"><span class="card-icon">⚠️</span> Limitations</h2>
+      <ul class="about-list limitations-list">
+        <li>The starter dictionary contains a limited set of common Tamil words and does not cover the full Tamil lexicon (~100,000+ words).</li>
+        <li>The system does <strong>not</strong> understand Tamil grammar, morphology, or sentence context.</li>
+        <li>Correctly spelled but rare or technical Tamil words may be flagged as unknown.</li>
+        <li>Edit-distance suggestions may occasionally be irrelevant for short words.</li>
+        <li>Tamil compound words and agglutinative forms may not all be present in the dictionary.</li>
+        <li>This prototype is not intended for production use.</li>
+      </ul>
+    </section>
+
+    <section class="card about-card" aria-labelledby="future-heading">
+      <h2 id="future-heading" class="card-title"><span class="card-icon">🚀</span> Future Enhancements</h2>
+      <ul class="about-list">
+        <li>Integrate a comprehensive Tamil word list (e.g., OLTools, Wiktionary dump).</li>
+        <li>Add morphological analysis to handle Tamil's agglutinative word forms.</li>
+        <li>Implement phonetic similarity (soundex-like) for Tamil consonant clusters.</li>
+        <li>Add context-aware ranking using n-gram language models.</li>
+        <li>Support right-to-left-aware display adjustments for mixed scripts.</li>
+        <li>Browser extension version for system-wide Tamil typing assistance.</li>
+      </ul>
+    </section>
+
+  </div>
+
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-inner">
+    <p class="footer-brand">TypeSure</p>
+    <p class="footer-desc">B.Sc. Computer Science Final-Year Project · Tamil Spelling Detection &amp; Correction</p>
+    <p class="footer-disclaimer">&copy; <span id="copyright-year"></span> Student prototype — not for production use.</p>
+  </div>
+</footer>
+
+<script src="/static/js/app.js"></script>
+</body>
+</html>
