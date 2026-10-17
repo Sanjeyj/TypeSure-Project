@@ -27,8 +27,24 @@ import os
 from datetime import datetime, timezone
 from pathlib import Path
 
-_DB_DIR = Path(__file__).parent.parent / "data"
-_DB_PATH = _DB_DIR / "typesure.db"
+
+def _resolve_db_path() -> Path:
+    """
+    Determine the database file location.
+
+    On Vercel (and similar serverless platforms), the project directory is
+    read-only.  Only /tmp is writable.  When the VERCEL environment variable
+    is set, the database is placed under /tmp so that init_db() can create
+    the schema without raising an OperationalError.
+    """
+    if os.environ.get("VERCEL"):
+        db_dir = Path("/tmp")
+    else:
+        db_dir = Path(__file__).parent.parent / "data"
+    return db_dir, db_dir / "typesure.db"
+
+
+_DB_DIR, _DB_PATH = _resolve_db_path()
 
 _CREATE_TABLE_SQL = """
 CREATE TABLE IF NOT EXISTS checks (
@@ -48,7 +64,11 @@ def _get_connection() -> sqlite3.Connection:
     _DB_DIR.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(str(_DB_PATH))
     conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA journal_mode=WAL;")
+    # Use WAL journal mode for better concurrency (ignored if /tmp resets)
+    try:
+        conn.execute("PRAGMA journal_mode=WAL;")
+    except sqlite3.OperationalError:
+        pass  # WAL not available on all filesystems
     conn.execute("PRAGMA foreign_keys=ON;")
     return conn
 
