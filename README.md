@@ -1,6 +1,6 @@
 # TypeSure — Tamil Spelling Detection and Correction System
 
-> A B.Sc. Computer Science final-year project that helps users identify and correct potential spelling mistakes in Tamil text using dictionary lookup, Unicode-aware text processing, and edit-distance algorithms.
+> A Tamil-language spelling detection and correction tool that helps users identify and correct potential spelling mistakes in Tamil text using dictionary lookup, Unicode-aware text processing, and edit-distance algorithms.
 
 ---
 
@@ -28,7 +28,7 @@
 
 ## Project Overview
 
-TypeSure is a Tamil-language spelling detection and correction prototype. It processes Tamil Unicode text locally on a Flask server, compares each token against a starter dictionary, and suggests corrections based on Levenshtein edit distance. No paid API, cloud service, or machine-learning model is required.
+TypeSure is a Tamil-language spelling detection and correction tool. It processes Tamil Unicode text locally on a Flask server, compares each token against a curated dictionary, and suggests corrections based on Levenshtein edit distance. No paid API, cloud service, or machine-learning model is required.
 
 ---
 
@@ -280,7 +280,7 @@ Result: 0 issues found. Dictionary coverage: 100%.
 3. **No grammar checking:** Only individual word spelling is checked.
 4. **Edit distance is language-agnostic:** The algorithm treats all character edits as equal cost; Tamil-specific phoneme relationships are not modeled.
 5. **Short-word noise:** Very short Tamil particles (1 character) are skipped to reduce false positives.
-6. **Not for production:** This is a student prototype.
+6. **Dictionary coverage:** The starter vocabulary covers common words but does not represent the full Tamil lexicon.
 
 ---
 
@@ -310,4 +310,4 @@ Result: 0 issues found. Dictionary coverage: 100%.
 ---
 
 *TypeSure — Tamil Spelling Detection and Correction System*  
-*B.Sc. Computer Science Final-Year Project*
+*Powered by dictionary lookup &amp; Levenshtein edit-distance algorithms.*
