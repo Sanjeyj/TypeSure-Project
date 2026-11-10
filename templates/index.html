@@ -33,6 +33,12 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Tamil:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
   <link rel="stylesheet" href="/static/css/style.css" />
+  <script>
+    (function() {
+      var theme = localStorage.getItem('typesure_theme') || 'light';
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
 </head>
 <body>
 
@@ -56,6 +62,20 @@
       <a href="/about" class="nav-link" id="nav-about">About</a>
       <button class="btn btn-outline btn-sm" id="btn-import-open" title="Import additional Tamil word list">
         Import Dictionary
+      </button>
+      {% if current_user %}
+        <a href="/dashboard" class="nav-link" style="font-weight: 600; color: var(--color-accent-gold);">
+          Dashboard
+        </a>
+        <a href="/logout" class="btn btn-ghost btn-sm" title="Sign out of TypeSure">
+          Sign Out
+        </a>
+      {% else %}
+        <a href="/login" class="nav-link">Sign In</a>
+        <a href="/register" class="btn btn-accent btn-sm">Get Started</a>
+      {% endif %}
+      <button class="theme-toggle" id="theme-toggle" title="Toggle Dark/Light Mode" aria-label="Toggle Dark/Light Mode">
+        🌙
       </button>
     </nav>
     <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false">

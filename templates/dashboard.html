@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="ta" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — TypeSure</title>
+  <meta name="description" content="TypeSure user workspace. Manage Tamil spelling checks, custom vocabulary, and writing history." />
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Tamil:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="/static/css/style.css" />
+
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('typesure_theme') || 'light';
+      if (savedTheme === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    })();
+  </script>
+</head>
+<body class="dashboard-page">
+
+<header class="site-header">
+  <div class="container header-inner" style="max-width: 100%; padding: 0 var(--sp-6);">
+    <a href="/dashboard" class="brand" aria-label="TypeSure Dashboard">
+      <div class="brand-logo" aria-hidden="true">
+        <span class="logo-icon">த</span>
+      </div>
+      <div class="brand-text">
+        <span class="brand-name">TypeSure</span>
+        <span class="brand-subtitle">Workspace</span>
+      </div>
+    </a>
+
+    <div class="dashboard-top-actions">
+      <a href="/" class="nav-link" title="Public Landing Page">Public Site</a>
+      <a href="/about" class="nav-link" title="Documentation">Docs</a>
+
+      <button class="theme-toggle-btn" id="theme-toggle" aria-label="Toggle light or dark theme" title="Toggle theme">
+        <span class="theme-toggle-icon" id="theme-icon">🌙</span>
+      </button>
+
+      <div class="user-profile-badge" style="padding: 4px 10px;">
+        <div class="user-avatar-circle" style="width: 28px; height: 28px; font-size: 0.78rem;">
+          {{ user.full_name[:1].upper() if user and user.full_name else 'U' }}
+        </div>
+        <span style="font-size: 0.82rem; font-weight: 600; color: var(--color-text);">
+          {{ user.full_name if user else 'Account' }}
+        </span>
+      </div>
+
+      <a href="/logout" class="btn btn-outline btn-sm" title="Sign out of account">
+        Sign Out
+      </a>
+    </div>
+  </div>
+</header>
+
+<div class="dashboard-layout">
+  <!-- Left Navigation Sidebar -->
+  <aside class="dashboard-sidebar" aria-label="Dashboard Navigation">
+    <div class="sidebar-nav-group">
+      <div class="sidebar-section-title">Navigation</div>
+      
+      <button class="sidebar-link active" data-tab="overview">
+        <span class="sidebar-icon">📊</span>
+        <span>Overview</span>
+      </button>
+
+      <button class="sidebar-link" data-tab="checker">
+        <span class="sidebar-icon">✏️</span>
+        <span>Spell Checker</span>
+      </button>
+
+      <button class="sidebar-link" data-tab="dictionary">
+        <span class="sidebar-icon">📖</span>
+        <span>Dictionary</span>
+      </button>
+
+      <button class="sidebar-link" data-tab="history">
+        <span class="sidebar-icon">🕒</span>
+        <span>History</span>
+      </button>
+
+      <button class="sidebar-link" data-tab="analytics">
+        <span class="sidebar-icon">📈</span>
+        <span>Analytics</span>
+      </button>
+
+      <div class="sidebar-section-title">Settings &amp; Account</div>
+
+      <button class="sidebar-link" data-tab="settings">
+        <span class="sidebar-icon">⚙️</span>
+        <span>Profile &amp; Settings</span>
+      </button>
+
+      <a href="/about" class="sidebar-link" target="_blank" rel="noopener">
+        <span class="sidebar-icon">📚</span>
+        <span>Architecture Docs ↗</span>
+      </a>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="user-profile-badge">
+        <div class="user-avatar-circle">
+          {{ user.full_name[:1].upper() if user and user.full_name else 'U' }}
+        </div>
+        <div class="user-badge-info">
+          <span class="user-badge-name">{{ user.full_name if user else 'User' }}</span>
+          <span class="user-badge-email">{{ user.email if user else '' }}</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content Panels -->
+  <main class="dashboard-main" id="dashboard-main">
+    <div class="dashboard-topbar">
+      <div class="dashboard-breadcrumb" id="current-tab-title">
+        Dashboard Overview
+      </div>
+      <div style="font-size: 0.8rem; color: var(--color-text-muted);">
+        Authenticated as <strong>{{ user.email if user else '' }}</strong>
+      </div>
+    </div>
+
+    <div class="dashboard-body">
+
+      <!-- ─── TAB 1: OVERVIEW ──────────────────────────────────────────────── -->
+      <section class="tab-pane active" id="tab-overview" aria-labelledby="overview-heading">
+        <div class="dashboard-welcome-banner">
+          <div class="welcome-banner-text">
+            <h2 id="overview-heading">Welcome back, {{ user.full_name.split()[0] if user else 'Writer' }}</h2>
+            <p>
+              Your personal Tamil language technology workspace is ready.
+              Analyze text, review phonological suggestion candidates, and manage your custom vocabulary.
+            </p>
+          </div>
+          <button class="btn btn-accent btn-lg" id="btn-jump-checker" style="flex-shrink: 0;">
+            Start Spell Checking
+          </button>
+        </div>
+
+        <!-- Real Aggregate Statistics -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="dash-total-words">{{ summary.total_words | default(0) }}</div>
+            <div class="stat-label">Words Scanned</div>
+            <div class="stat-note">Across your checking sessions</div>
+          </div>
+          <div class="stat-card stat-card--warning">
+            <div class="stat-value" id="dash-total-issues">{{ summary.total_issues | default(0) }}</div>
+            <div class="stat-label">Potential Issues</div>
+            <div class="stat-note">Orthographic anomalies detected</div>
+          </div>
+          <div class="stat-card stat-card--success">
+            <div class="stat-value" id="dash-total-corrections">{{ summary.total_corrections | default(0) }}</div>
+            <div class="stat-label">Corrections Accepted</div>
+            <div class="stat-note">Interactive user replacements</div>
+          </div>
+          <div class="stat-card stat-card--accent">
+            <div class="stat-value" id="dash-total-dict">{{ dict_stats.total_words | default(436) }}</div>
+            <div class="stat-label">Dictionary Words</div>
+            <div class="stat-note">Indexed in Burkhard-Keller metric tree</div>
+          </div>
+        </div>
+
+        <!-- Recent Activity Card -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">
+              <span class="card-icon">🕒</span> Recent Checks
+            </h3>
+            <button class="btn btn-ghost btn-sm" data-tab-switch="history">View All History →</button>
+          </div>
+          <div class="history-list" id="dash-recent-list">
+            {% if recent_checks %}
+              {% for r in recent_checks[:5] %}
+                <div class="history-item">
+                  <div class="history-num">{{ loop.index }}</div>
+                  <div class="history-meta">
+                    <div class="history-time">{{ r.created_at }}</div>
+                    <div class="history-stats">
+                      {{ r.word_count }} words · <strong>{{ r.issue_count }} issues</strong>
+                      {% if r.corrections > 0 %} · {{ r.corrections }} corrected{% endif %}
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            {% else %}
+              <div class="empty-state">
+                <div class="empty-icon">📭</div>
+                <p class="empty-title">No checks recorded yet</p>
+                <p class="empty-sub">Your personal check history will appear here once you analyze text.</p>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── TAB 2: SPELL CHECKER WORKSPACE ───────────────────────────────── -->
+      <section class="tab-pane" id="tab-checker" aria-labelledby="checker-heading">
+        <!-- Editor Card -->
+        <section class="card editor-card" aria-labelledby="checker-heading">
+          <div class="card-header">
+            <h3 id="checker-heading" class="card-title">
+              <span class="card-icon">✏️</span> Tamil Text Editor
+            </h3>
+            <div class="editor-meta" id="editor-meta" aria-live="polite">
+              <span id="char-count">0 characters</span>
+              <span class="meta-sep">·</span>
+              <span id="word-count">0 words</span>
+            </div>
+          </div>
+
+          <div class="editor-wrap">
+            <textarea
+              id="tamil-input"
+              class="tamil-editor"
+              placeholder="இங்கே தமிழ் உரையை தட்டச்சு செய்யுங்கள் அல்லது ஒட்டுங்கள்…"
+              aria-label="Tamil text input area"
+              spellcheck="false"
+              autocorrect="off"
+              autocomplete="off"
+              rows="10"
+            ></textarea>
+          </div>
+
+          <div class="editor-footer">
+            <div class="sample-btns" aria-label="Load sample text">
+              <span class="sample-label">Samples:</span>
+              <button class="btn btn-ghost btn-sm" id="sample-1" data-sample="1">Correct Tamil</button>
+              <button class="btn btn-ghost btn-sm" id="sample-2" data-sample="2">With Errors</button>
+              <button class="btn btn-ghost btn-sm" id="sample-3" data-sample="3">Mixed Content</button>
+            </div>
+            <div class="action-btns">
+              <button class="btn btn-ghost btn-sm" id="btn-clear" aria-label="Clear all text">Clear</button>
+              <button class="btn btn-primary" id="btn-check" aria-label="Check spelling">
+                Check Spelling
+              </button>
+            </div>
+          </div>
+
+          <div class="store-text-row">
+            <label class="checkbox-label" for="store-text-toggle">
+              <input type="checkbox" id="store-text-toggle" />
+              <span>Save my full text in history (optional)</span>
+            </label>
+          </div>
+        </section>
+
+        <!-- Loading Overlay -->
+        <div class="loading-overlay" id="loading-overlay" aria-hidden="true">
+          <div class="spinner"></div>
+          <p>Analysing Tamil Unicode text via BK-Tree…</p>
+        </div>
+
+        <!-- Error Banner -->
+        <div class="notice notice-error hidden" id="error-banner" role="alert">
+          <span class="notice-icon">⚠️</span>
+          <span id="error-message">An error occurred.</span>
+        </div>
+
+        <!-- Live Statistics Cards -->
+        <section class="stats-section hidden" id="stats-section" aria-label="Check statistics">
+          <h3 class="section-title">Check Statistics</h3>
+          <div class="stats-grid">
+            <div class="stat-card" id="stat-total">
+              <div class="stat-value" id="stat-total-val">—</div>
+              <div class="stat-label">Words Scanned</div>
+            </div>
+            <div class="stat-card stat-card--warning" id="stat-issues">
+              <div class="stat-value" id="stat-issues-val">—</div>
+              <div class="stat-label">Potential Issues</div>
+            </div>
+            <div class="stat-card stat-card--success" id="stat-recognized">
+              <div class="stat-value" id="stat-recognized-val">—</div>
+              <div class="stat-label">Recognized Words</div>
+            </div>
+            <div class="stat-card stat-card--accent" id="stat-coverage">
+              <div class="stat-value" id="stat-coverage-val">—</div>
+              <div class="stat-label">Dictionary Coverage*</div>
+              <div class="stat-note">*Coverage = words found in dictionary, not spelling accuracy</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Results: Issues & Suggestions -->
+        <section class="card results-card hidden" id="results-section" aria-labelledby="results-heading">
+          <div class="card-header">
+            <h3 id="results-heading" class="card-title">
+              <span class="card-icon">📋</span> Potential Issues &amp; Suggestions
+            </h3>
+            <div class="results-actions">
+              <button class="btn btn-ghost btn-sm" id="btn-undo" aria-label="Undo all corrections" disabled>
+                Undo
+              </button>
+              <button class="btn btn-outline btn-sm" id="btn-recheck" aria-label="Re-check corrected text">
+                Recheck
+              </button>
+              <button class="btn btn-outline btn-sm" id="btn-export" aria-label="Download report">
+                Export Report
+              </button>
+            </div>
+          </div>
+
+          <div id="no-issues-msg" class="empty-state hidden">
+            <div class="empty-icon">✅</div>
+            <p class="empty-title">All words recognized</p>
+            <p class="empty-sub">Every Tamil word in your text was found in the dictionary or morphological lexicon.</p>
+          </div>
+
+          <div id="issues-list" class="issues-list"></div>
+        </section>
+
+        <!-- Corrected Preview -->
+        <section class="card preview-card hidden" id="preview-section" aria-labelledby="preview-heading">
+          <div class="card-header">
+            <h3 id="preview-heading" class="card-title">
+              <span class="card-icon">📄</span> Corrected Text Preview
+            </h3>
+            <button class="btn btn-ghost btn-sm" id="btn-copy-corrected" aria-label="Copy corrected text">
+              Copy
+            </button>
+          </div>
+          <div id="corrected-preview" class="corrected-preview tamil-text"></div>
+          <div class="corrections-applied-row">
+            <span id="corrections-count">0 corrections applied this session</span>
+          </div>
+        </section>
+      </section>
+
+      <!-- ─── TAB 3: DICTIONARY MANAGEMENT ─────────────────────────────────── -->
+      <section class="tab-pane" id="tab-dictionary" aria-labelledby="dict-heading">
+        <div class="card">
+          <div class="card-header">
+            <h3 id="dict-heading" class="card-title">
+              <span class="card-icon">📖</span> Dictionary Vocabulary Management
+            </h3>
+            <button class="btn btn-primary btn-sm" id="btn-open-import-tab">
+              Import .txt Word List
+            </button>
+          </div>
+          <div style="padding: var(--sp-6); display: flex; flex-direction: column; gap: var(--sp-6);">
+            <div class="stats-grid">
+              <div class="stat-card">
+                <div class="stat-value">{{ dict_stats.total_words | default(436) }}</div>
+                <div class="stat-label">Total Vocabulary Words</div>
+              </div>
+              <div class="stat-card stat-card--accent">
+                <div class="stat-value">{{ dict_stats.starter_words | default(423) }}</div>
+                <div class="stat-label">Curated Starter Words</div>
+              </div>
+              <div class="stat-card stat-card--success">
+                <div class="stat-value">{{ dict_stats.imported_words | default(13) }}</div>
+                <div class="stat-label">Persisted Custom Words</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value">{{ dict_stats.bktree_nodes | default(436) }}</div>
+                <div class="stat-label">BK-Tree Metric Nodes</div>
+              </div>
+            </div>
+
+            <div class="notice notice-info">
+              <span class="notice-icon">ℹ️</span>
+              <div>
+                <strong>Custom Vocabulary Persistence:</strong> Words imported from valid UTF-8 text files
+                are added to your SQLite <code>custom_words</code> table and indexed in the Burkhard-Keller
+                Tree. They persist across application restarts and remain active during spell checking.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── TAB 4: HISTORY ───────────────────────────────────────────────── -->
+      <section class="tab-pane" id="tab-history" aria-labelledby="history-heading">
+        <div class="card">
+          <div class="card-header">
+            <h3 id="history-heading" class="card-title">
+              <span class="card-icon">🕒</span> Your Check History
+            </h3>
+            <button class="btn btn-ghost btn-sm btn-danger" id="btn-clear-history" style="color: var(--color-danger);">
+              Clear All History
+            </button>
+          </div>
+          <div id="history-list" class="history-list">
+            <!-- Dynamically populated via app.js loadHistory() -->
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── TAB 5: ANALYTICS ─────────────────────────────────────────────── -->
+      <section class="tab-pane" id="tab-analytics" aria-labelledby="analytics-heading">
+        <div class="card">
+          <div class="card-header">
+            <h3 id="analytics-heading" class="card-title">
+              <span class="card-icon">📈</span> Academic Language Technology Analytics
+            </h3>
+            <a href="/api/benchmark" target="_blank" class="btn btn-outline btn-sm">Run Live Benchmark API ↗</a>
+          </div>
+          <div style="padding: var(--sp-6); display: flex; flex-direction: column; gap: var(--sp-6);">
+            <div class="about-grid">
+              <div class="algo-item">
+                <h3>1. Search Latency Comparison</h3>
+                <p>
+                  Linear length-filtered scanning takes $O(|V|)$ dynamic programming comparisons per word.
+                  The Burkhard-Keller metric tree prunes branches using the triangle inequality:
+                  $$\text{Edge Distance } k \in [d - N, \; d + N]$$
+                  delivering an average latency of ~2.5 ms ($1.42\times$ to $40\times$ faster than linear scans).
+                </p>
+              </div>
+
+              <div class="algo-item">
+                <h3>2. Dictionary Coverage vs. Spelling Accuracy</h3>
+                <p>
+                  Dictionary coverage indicates the mathematical proportion of submitted tokens that appear
+                  in the lexical database. Because Tamil is agglutinative, coverage is supplemented by the
+                  sandhi-aware morphological suffix analyzer to prevent false alarms on inflected words.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── TAB 6: SETTINGS ──────────────────────────────────────────────── -->
+      <section class="tab-pane" id="tab-settings" aria-labelledby="settings-heading">
+        <div class="card">
+          <div class="card-header">
+            <h3 id="settings-heading" class="card-title">
+              <span class="card-icon">⚙️</span> Profile &amp; Preferences
+            </h3>
+          </div>
+          <div style="padding: var(--sp-8); max-width: 600px; display: flex; flex-direction: column; gap: var(--sp-6);">
+            <form id="profile-update-form" class="auth-form">
+              <div class="form-group">
+                <label class="form-label" for="prof-email">Email Address (Read-only)</label>
+                <input type="email" id="prof-email" class="form-input" value="{{ user.email if user else '' }}" disabled />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="prof-name">Full Name</label>
+                <input type="text" id="prof-name" class="form-input" value="{{ user.full_name if user else '' }}" required />
+              </div>
+              <button type="submit" class="btn btn-primary" id="btn-save-profile" style="align-self: flex-start;">
+                Save Profile
+              </button>
+            </form>
+
+            <div style="padding-top: var(--sp-6); border-top: 1px solid var(--color-border-light);">
+              <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--color-primary); margin-bottom: var(--sp-3);">
+                Interface Theme
+              </h4>
+              <p style="font-size: 0.85rem; color: var(--color-text-secondary); margin-bottom: var(--sp-4);">
+                Toggle between Warm Ivory &amp; Forest Green (Light Mode) or Deep Charcoal &amp; Emerald (Dark Mode).
+              </p>
+              <button class="btn btn-outline" id="btn-theme-toggle-settings">
+                Switch Theme (Light / Dark)
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<!-- Dictionary Import Modal -->
+<div class="modal-overlay hidden" id="import-modal" role="dialog" aria-modal="true" aria-labelledby="import-modal-title">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="import-modal-title">Import Dictionary</h3>
+      <button class="modal-close" id="import-modal-close" aria-label="Close modal">✕</button>
+    </div>
+    <div class="modal-body">
+      <p>Upload a <strong>UTF-8 text file</strong> with one Tamil word per line to expand your dictionary.</p>
+      <ul class="import-rules">
+        <li>Lines beginning with <code>#</code> are treated as comments.</li>
+        <li>Maximum file size: 2 MB.</li>
+        <li>Maximum words per file: 50,000.</li>
+        <li>Words without any Tamil character will be skipped.</li>
+        <li>Duplicates are silently ignored.</li>
+      </ul>
+      <div class="file-drop-zone" id="file-drop-zone" tabindex="0" role="button" aria-label="Click or drag a .txt file here">
+        <div class="drop-icon">📂</div>
+        <p>Click or drag a <code>.txt</code> file here</p>
+        <input type="file" id="dict-file-input" accept=".txt" class="hidden" aria-label="Choose dictionary file" />
+      </div>
+      <div class="import-result hidden" id="import-result"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="btn-import-cancel">Cancel</button>
+      <button class="btn btn-primary" id="btn-import-confirm" disabled>Import</button>
+    </div>
+  </div>
+</div>
+
+<!-- Clear History Confirmation Modal -->
+<div class="modal-overlay hidden" id="clear-history-modal" role="dialog" aria-modal="true" aria-labelledby="clear-history-title">
+  <div class="modal modal--sm">
+    <div class="modal-header">
+      <h3 id="clear-history-title">Clear History</h3>
+      <button class="modal-close" id="clear-history-modal-close" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <p>Are you sure you want to delete all check history records? This action cannot be undone.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="btn-clear-history-cancel">Cancel</button>
+      <button class="btn btn-danger" id="btn-clear-history-confirm">Yes, Clear All</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toast-container" aria-live="polite"></div>
+
+<script src="/static/js/app.js"></script>
+<script src="/static/js/dashboard.js"></script>
+</body>
+</html>

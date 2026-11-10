@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ta" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign In — TypeSure</title>
+  <meta name="description" content="Sign in to your TypeSure account to manage your Tamil spelling checks, custom dictionary, and writing history." />
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Tamil:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="/static/css/style.css" />
+
+  <!-- Theme initialization script (prevents flash of wrong theme) -->
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('typesure_theme') || 'light';
+      if (savedTheme === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    })();
+  </script>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="/" class="brand" aria-label="TypeSure Home">
+      <div class="brand-logo" aria-hidden="true">
+        <span class="logo-icon">த</span>
+      </div>
+      <div class="brand-text">
+        <span class="brand-name">TypeSure</span>
+        <span class="brand-subtitle">Tamil Spelling Assistant</span>
+      </div>
+    </a>
+    <nav class="site-nav" aria-label="Main navigation">
+      <a href="/" class="nav-link">Home</a>
+      <a href="/about" class="nav-link">About</a>
+      <a href="/register" class="nav-link">Create Account</a>
+      <button class="theme-toggle-btn" id="theme-toggle" aria-label="Toggle light or dark theme" title="Toggle theme">
+        <span class="theme-toggle-icon" id="theme-icon">🌙</span>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<main class="auth-split-wrapper">
+  <!-- Left Editorial Hero Section -->
+  <section class="auth-left" aria-label="Brand Overview">
+    <div class="auth-brand-badge">Indian Language Technology</div>
+    
+    <div class="auth-left-content">
+      <h1 class="auth-left-title">
+        Write Tamil<br />
+        with <span style="color: var(--gold);">Confidence.</span>
+      </h1>
+      <p class="auth-left-desc">
+        Your intelligent companion for accurate Tamil writing. Powered by
+        grapheme clustering, phonological edit-distance algorithms, and
+        agglutinative morphology analysis.
+      </p>
+
+      <div class="auth-features-list">
+        <div class="auth-feature-point">
+          <span class="check-glyph">✓</span>
+          <span>Private, session-isolated writing workspace</span>
+        </div>
+        <div class="auth-feature-point">
+          <span class="check-glyph">✓</span>
+          <span>Persistent custom vocabulary dictionary</span>
+        </div>
+        <div class="auth-feature-point">
+          <span class="check-glyph">✓</span>
+          <span>Intelligent multi-factor candidate suggestions</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="auth-left-footer">
+      &copy; <span id="copy-year"></span> TypeSure · B.Sc. Computer Science Project
+    </div>
+  </section>
+
+  <!-- Right Authentication Form Section -->
+  <section class="auth-right" aria-label="Sign In Form">
+    <div class="auth-card">
+      <div class="auth-card-header">
+        <h2 class="auth-card-title">Welcome Back</h2>
+        <p class="auth-card-subtitle">Sign in to continue with TypeSure.</p>
+      </div>
+
+      <div class="notice notice-error hidden" id="login-error-alert" role="alert" style="margin-bottom: var(--sp-4);">
+        <span class="notice-icon">⚠️</span>
+        <span id="login-error-msg">Invalid credentials.</span>
+      </div>
+
+      <form id="login-form" class="auth-form" novalidate>
+        <div class="form-group">
+          <label class="form-label" for="login-email">Email Address</label>
+          <input
+            type="email"
+            id="login-email"
+            name="email"
+            class="form-input"
+            placeholder="name@example.com"
+            required
+            autocomplete="email"
+          />
+        </div>
+
+        <div class="form-group">
+          <div class="form-label">
+            <label for="login-password">Password</label>
+            <a href="/forgot-password" class="form-link" style="font-size: 0.78rem;">Forgot password?</a>
+          </div>
+          <div class="input-with-icon">
+            <input
+              type="password"
+              id="login-password"
+              name="password"
+              class="form-input"
+              placeholder="••••••••"
+              required
+              autocomplete="current-password"
+            />
+            <button type="button" class="input-action-btn" id="toggle-password" aria-label="Toggle password visibility">
+              Show
+            </button>
+          </div>
+        </div>
+
+        <div class="form-options-row">
+          <label class="checkbox-label" for="login-remember">
+            <input type="checkbox" id="login-remember" name="remember" />
+            <span>Remember me for 30 days</span>
+          </label>
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="btn-login-submit" style="width: 100%; padding: 12px; margin-top: var(--sp-2);">
+          Sign In
+        </button>
+      </form>
+
+      <div class="auth-card-footer">
+        Don't have an account?
+        <a href="/register" class="form-link">Create Account</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="/static/js/auth.js"></script>
+</body>
+</html>

@@ -129,6 +129,9 @@ function showToast(message, type = "info", duration = 4000) {
   }, duration);
 }
 
+// Export showToast globally for other components
+window.showToast = showToast;
+
 /* ═══════════════════════════════════════════════════════════════════════════
    UTILITY HELPERS
 ═══════════════════════════════════════════════════════════════════════════ */
@@ -755,3 +758,36 @@ const copyrightYearEl = $("copyright-year");
 if (copyrightYearEl) {
   copyrightYearEl.textContent = new Date().getFullYear();
 }
+
+/* ─── Theme Switcher (Light / Dark) ─────────────────────────────────────── */
+(function initTheme() {
+  const storedTheme = localStorage.getItem("typesure_theme") || "light";
+  document.documentElement.setAttribute("data-theme", storedTheme);
+
+  function updateIcons(theme) {
+    document.querySelectorAll(".theme-toggle, .btn-theme-toggle").forEach((btn) => {
+      btn.innerHTML = theme === "dark" ? "☀️" : "🌙";
+      btn.setAttribute("title", theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode");
+      btn.setAttribute("aria-label", theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode");
+    });
+  }
+
+  updateIcons(storedTheme);
+
+  function toggleTheme() {
+    const current = document.documentElement.getAttribute("data-theme") || "light";
+    const next = current === "dark" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", next);
+    localStorage.setItem("typesure_theme", next);
+    updateIcons(next);
+    if (window.showToast) {
+      window.showToast(`Switched to ${next === "dark" ? "Dark" : "Light"} Mode`, "info", 2000);
+    }
+  }
+
+  window.toggleTypeSureTheme = toggleTheme;
+
+  document.querySelectorAll(".theme-toggle, .btn-theme-toggle").forEach((btn) => {
+    btn.addEventListener("click", toggleTheme);
+  });
+})();
