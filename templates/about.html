@@ -4,10 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>About TypeSure — Tamil Spelling Assistant</title>
-  <meta name="description" content="Learn about the TypeSure Tamil spelling detection and correction system — algorithms, limitations, and project background." />
+  <meta name="description" content="Learn about the TypeSure Tamil spelling detection and correction system — algorithms, limitations, privacy, and project background." />
   <meta name="keywords" content="TypeSure about, Tamil spell checker algorithm, Levenshtein distance Tamil, edit distance spell check" />
   <meta name="author" content="TypeSure" />
-  <link rel="canonical" href="http://localhost:5000/about" />
+  <link rel="canonical" href="https://type-sure-project.vercel.app/about" />
 
   <!-- Favicon -->
   <link rel="icon" type="image/x-icon" href="/favicon.ico" />
@@ -17,8 +17,8 @@
   <!-- Open Graph -->
   <meta property="og:type" content="website" />
   <meta property="og:title" content="About TypeSure — Tamil Spelling Assistant" />
-  <meta property="og:description" content="Learn about TypeSure — algorithms, limitations, and project background." />
-  <meta property="og:url" content="http://localhost:5000/about" />
+  <meta property="og:description" content="Learn about TypeSure — algorithms, limitations, privacy, and project background." />
+  <meta property="og:url" content="https://type-sure-project.vercel.app/about" />
   <meta property="og:site_name" content="TypeSure" />
 
   <!-- Twitter Card -->
@@ -35,15 +35,15 @@
 
 <header class="site-header">
   <div class="container header-inner">
-    <div class="brand">
+    <a href="/" class="brand" aria-label="TypeSure Home">
       <div class="brand-logo" aria-hidden="true">
-        <span class="logo-icon">ச</span>
+        <span class="logo-icon">த</span>
       </div>
       <div class="brand-text">
         <span class="brand-name">TypeSure</span>
         <span class="brand-subtitle">Tamil Spelling Assistant</span>
       </div>
-    </div>
+    </a>
     <nav class="site-nav" aria-label="Main navigation">
       <a href="/" class="nav-link" id="nav-home">Home</a>
       <a href="/about" class="nav-link active" id="nav-about">About</a>
@@ -57,83 +57,131 @@
 <main class="main-content container about-page" id="main">
 
   <section class="about-hero">
+    <div class="section-label">About the Project</div>
     <h1 class="about-title">About TypeSure</h1>
     <p class="about-intro">
-      TypeSure is a Tamil-language spelling detection and correction tool. It processes Tamil Unicode text
-      locally on a Flask server, compares each token against a curated dictionary, and suggests corrections
-      using a combination of dictionary lookup and string-similarity algorithms.
+      TypeSure is a Tamil-language spelling detection and correction tool. It processes Tamil
+      Unicode text locally on a Flask server, compares each token against a curated dictionary,
+      and suggests corrections using a combination of dictionary lookup and string-similarity
+      algorithms. The system is designed to be transparent, explainable and privacy-respecting.
     </p>
   </section>
 
   <div class="about-grid">
 
+    <!-- Objectives -->
     <section class="card about-card" aria-labelledby="objectives-heading">
       <h2 id="objectives-heading" class="card-title"><span class="card-icon">🎯</span> Objectives</h2>
       <ul class="about-list">
         <li>Provide a simple, explainable Tamil spelling assistant.</li>
-        <li>Work entirely offline without paid APIs or cloud services.</li>
+        <li>Work entirely without paid APIs or external cloud services.</li>
         <li>Demonstrate practical application of NLP algorithms for Indian languages.</li>
         <li>Help students and general users type Tamil more confidently.</li>
+        <li>Maintain full transparency about algorithmic limitations.</li>
       </ul>
     </section>
 
-    <section class="card about-card" aria-labelledby="algo-heading">
-      <h2 id="algo-heading" class="card-title"><span class="card-icon">📐</span> Algorithms Used</h2>
-
+    <!-- How It Works (Detailed) -->
+    <section class="card about-card" aria-labelledby="how-heading">
+      <h2 id="how-heading" class="card-title"><span class="card-icon">⚙️</span> How TypeSure Works</h2>
       <div class="algo-item">
-        <h3>1. Unicode NFC Normalization</h3>
+        <h3>1. Text Input &amp; Preprocessing</h3>
         <p>
-          Tamil text on different systems may store the same character in
-          different binary forms. NFC (Canonical Composition) ensures consistent
-          representation before any comparison is made.
+          When you submit Tamil text, TypeSure first applies Unicode NFC (Canonical Composition)
+          normalization using Python's <code>unicodedata</code> module. This ensures that
+          characters stored in different binary forms on different systems are treated identically.
+          For example, a combining vowel sign followed by a consonant will be composed into the
+          correct composite codepoint before comparison.
         </p>
       </div>
-
       <div class="algo-item">
         <h3>2. Tokenization</h3>
         <p>
-          The input text is split into spans using regular expressions that
-          respect Tamil Unicode ranges (U+0B80–U+0BFF). Punctuation, spaces,
-          numbers, and English words are separated and preserved — they are
-          never passed to the Tamil spell checker.
+          The normalized text is tokenized using regular expressions that respect Tamil
+          Unicode ranges (U+0B80–U+0BFF). Punctuation, spaces, numbers, and English
+          words are separated into distinct spans and preserved. Only Tamil-script tokens
+          are passed to the spell-checking pipeline. Non-Tamil content is never modified.
+        </p>
+      </div>
+      <div class="algo-item">
+        <h3>3. Dictionary Membership Check</h3>
+        <p>
+          Each Tamil token is checked against an in-memory Python <code>set</code>
+          containing the curated dictionary. Set membership testing is O(1) average case,
+          making the check near-instantaneous. Words found in the dictionary are marked
+          as "recognized". Words not found are flagged as "unknown" for further analysis.
+        </p>
+      </div>
+      <div class="algo-item">
+        <h3>4. Suggestion Generation</h3>
+        <p>
+          For each unknown word, TypeSure searches the dictionary for similar words
+          using the Levenshtein edit-distance algorithm. A length pre-filter eliminates
+          candidate words whose length differs by more than the threshold (2 edits),
+          substantially reducing the search space before the more expensive dynamic
+          programming computation runs.
+        </p>
+      </div>
+      <div class="algo-item">
+        <h3>5. Candidate Ranking</h3>
+        <p>
+          Candidates are ranked primarily by edit distance (lower is better), then
+          alphabetically as a stable tiebreaker. Up to 5 suggestions are returned per
+          unknown word. The user must explicitly accept or reject each suggestion —
+          TypeSure never auto-corrects text.
+        </p>
+      </div>
+    </section>
+
+    <!-- Algorithms -->
+    <section class="card about-card" id="algorithms" aria-labelledby="algo-heading">
+      <h2 id="algo-heading" class="card-title"><span class="card-icon">📐</span> Algorithm Documentation</h2>
+
+      <div class="algo-item">
+        <h3>Unicode NFC Normalization</h3>
+        <p>
+          Tamil text on different systems may store the same character in
+          different binary forms. NFC (Canonical Composition) ensures consistent
+          representation before any comparison is made. This is critical because
+          a visually identical Tamil word could fail a byte-level comparison if
+          one copy uses composed codepoints and the other uses decomposed sequences.
         </p>
       </div>
 
       <div class="algo-item">
-        <h3>3. Dictionary Lookup (O(1) set lookup)</h3>
+        <h3>Levenshtein Edit Distance</h3>
         <p>
-          Each Tamil token is checked against an in-memory Python
-          <code>set</code>. Set membership testing is O(1) average case,
-          making the dictionary check very fast even for long texts.
+          The edit distance between two strings is the minimum number of single-character
+          edits (insertions, deletions, substitutions) needed to transform one string into
+          the other. TypeSure uses the Wagner–Fischer dynamic-programming algorithm with a
+          single-array optimization to keep memory usage at O(min(m, n)). The time complexity
+          is O(m × n) where m and n are the lengths of the two strings.
         </p>
-      </div>
-
-      <div class="algo-item">
-        <h3>4. Levenshtein Edit Distance</h3>
         <p>
-          For unknown words, the Wagner–Fischer dynamic-programming algorithm
-          computes the minimum number of single-character edits (insertions,
-          deletions, substitutions) required to transform one string into
-          another. A threshold of ≤ 2 is used to avoid unrelated suggestions.
+          For Tamil words (typically 3–8 characters), a threshold of 2 catches common
+          single- and double-character typing errors without producing too many irrelevant
+          suggestions. Common Tamil errors include missing pulli marks (virama), doubled
+          consonant omissions, and vowel sign substitutions.
         </p>
         <div class="algo-example">
           <strong>Example:</strong>
           <code class="tamil-text">வணககம்</code> → distance 2 →
-          <code class="tamil-text">வணக்கம்</code>
+          <code class="tamil-text">வணக்கம்</code> (missing க்க pulli)
         </div>
       </div>
 
       <div class="algo-item">
-        <h3>5. Candidate Ranking</h3>
+        <h3>Length Pre-Filter</h3>
         <p>
-          Candidates are sorted by edit distance (ascending), then
-          alphabetically as a tiebreaker. Up to 5 suggestions are returned.
-          A length pre-filter eliminates dictionary words whose length differs
-          by more than the threshold before the expensive distance computation.
+          Before computing Levenshtein distance, TypeSure applies a simple but effective
+          optimization: only dictionary words whose length differs by at most the maximum
+          distance threshold are considered. This eliminates the majority of candidates and
+          dramatically reduces computation time for large dictionaries.
         </p>
       </div>
     </section>
 
+    <!-- Technology Stack -->
     <section class="card about-card" aria-labelledby="stack-heading">
       <h2 id="stack-heading" class="card-title"><span class="card-icon">🛠️</span> Technology Stack</h2>
       <div class="tech-grid">
@@ -170,6 +218,7 @@
       </div>
     </section>
 
+    <!-- Database Schema -->
     <section class="card about-card" aria-labelledby="db-heading">
       <h2 id="db-heading" class="card-title"><span class="card-icon">🗄️</span> Database Schema</h2>
       <pre class="code-block"><code>CREATE TABLE checks (
@@ -183,18 +232,33 @@
 );</code></pre>
     </section>
 
-    <section class="card about-card" aria-labelledby="limits-heading">
+    <!-- Limitations -->
+    <section class="card about-card" id="limitations" aria-labelledby="limits-heading">
       <h2 id="limits-heading" class="card-title"><span class="card-icon">⚠️</span> Limitations</h2>
       <ul class="about-list limitations-list">
         <li>The starter dictionary contains a limited set of common Tamil words and does not cover the full Tamil lexicon (~100,000+ words).</li>
         <li>The system does <strong>not</strong> understand Tamil grammar, morphology, or sentence context.</li>
         <li>Correctly spelled but rare or technical Tamil words may be flagged as unknown.</li>
-        <li>Edit-distance suggestions may occasionally be irrelevant for short words.</li>
+        <li>Edit-distance suggestions may occasionally be irrelevant for very short words.</li>
         <li>Tamil compound words and agglutinative forms may not all be present in the dictionary.</li>
-        <li>This prototype is not intended for production use.</li>
+        <li>Dictionary coverage percentage reflects only the overlap between the input text and the dictionary — it is not a measure of spelling accuracy.</li>
       </ul>
     </section>
 
+    <!-- Privacy -->
+    <section class="card about-card privacy-card" id="privacy" aria-labelledby="privacy-heading">
+      <h2 id="privacy-heading" class="card-title"><span class="card-icon">🔒</span> Privacy &amp; Security</h2>
+      <ul class="about-list">
+        <li>All text processing happens on the TypeSure server. No text is sent to any third-party API or cloud service.</li>
+        <li>By default, only aggregate statistics (word count, issue count, timestamp) are stored in the SQLite database.</li>
+        <li>Full text is saved in history only when you explicitly opt in using the "Save my full text" checkbox.</li>
+        <li>You can clear all history at any time using the "Clear History" function. This permanently deletes all stored records.</li>
+        <li>The dictionary import feature processes uploaded files server-side and retains only the individual words. The uploaded file itself is not stored.</li>
+        <li>Security headers (CSP, X-Frame-Options, X-Content-Type-Options) are applied to every response.</li>
+      </ul>
+    </section>
+
+    <!-- Future Enhancements -->
     <section class="card about-card" aria-labelledby="future-heading">
       <h2 id="future-heading" class="card-title"><span class="card-icon">🚀</span> Future Enhancements</h2>
       <ul class="about-list">
@@ -213,9 +277,38 @@
 
 <footer class="site-footer">
   <div class="container footer-inner">
-    <p class="footer-brand">TypeSure</p>
-    <p class="footer-desc">Tamil Spelling Detection &amp; Correction · Dictionary lookup &amp; edit-distance algorithms</p>
-    <p class="footer-disclaimer">&copy; <span id="copyright-year"></span> TypeSure. Dictionary coverage may not include all Tamil words.</p>
+    <div class="footer-top">
+      <div class="footer-brand-block">
+        <p class="footer-brand">TypeSure</p>
+        <p class="footer-desc">
+          Tamil Spelling Detection &amp; Correction System.
+          Built with dictionary lookup and Levenshtein edit-distance algorithms.
+        </p>
+      </div>
+      <div class="footer-links">
+        <div class="footer-link-group">
+          <h4>Navigation</h4>
+          <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/about">About</a></li>
+          </ul>
+        </div>
+        <div class="footer-link-group">
+          <h4>Resources</h4>
+          <ul>
+            <li><a href="#algorithms">Algorithms</a></li>
+            <li><a href="#privacy">Privacy</a></li>
+            <li><a href="#limitations">Limitations</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p class="footer-disclaimer">
+        &copy; <span id="copyright-year"></span> TypeSure. Dictionary coverage may not include all Tamil words.
+      </p>
+      <p class="footer-tech">Python · Flask · SQLite · Vanilla JS</p>
+    </div>
   </div>
 </footer>
 

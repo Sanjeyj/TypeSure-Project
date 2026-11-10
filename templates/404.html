@@ -20,42 +20,42 @@
       align-items: center;
       justify-content: center;
       text-align: center;
-      padding: var(--space-xl);
+      padding: var(--sp-8);
     }
     .error-code {
       font-size: clamp(5rem, 15vw, 8rem);
       font-weight: 700;
       color: var(--color-primary);
       line-height: 1;
-      margin-bottom: var(--space-md);
+      margin-bottom: var(--sp-4);
     }
     .error-title {
       font-size: 1.5rem;
       font-weight: 600;
       color: var(--color-text);
-      margin-bottom: var(--space-sm);
+      margin-bottom: var(--sp-2);
     }
     .error-desc {
       color: var(--color-text-muted);
-      margin-bottom: var(--space-xl);
+      margin-bottom: var(--sp-8);
       max-width: 440px;
     }
-    .error-actions { display: flex; gap: var(--space-md); flex-wrap: wrap; justify-content: center; }
+    .error-actions { display: flex; gap: var(--sp-4); flex-wrap: wrap; justify-content: center; }
   </style>
 </head>
 <body>
 
 <header class="site-header">
   <div class="container header-inner">
-    <div class="brand">
+    <a href="/" class="brand" aria-label="TypeSure Home">
       <div class="brand-logo" aria-hidden="true">
-        <span class="logo-icon">ச</span>
+        <span class="logo-icon">த</span>
       </div>
       <div class="brand-text">
         <span class="brand-name">TypeSure</span>
         <span class="brand-subtitle">Tamil Spelling Assistant</span>
       </div>
-    </div>
+    </a>
     <nav class="site-nav" aria-label="Main navigation">
       <a href="/" class="nav-link" id="nav-home">Home</a>
       <a href="/about" class="nav-link" id="nav-about">About</a>
@@ -80,9 +80,11 @@
 
 <footer class="site-footer">
   <div class="container footer-inner">
-    <p class="footer-brand">TypeSure</p>
-    <p class="footer-desc">Tamil Spelling Detection &amp; Correction &middot; Dictionary lookup &amp; edit-distance algorithms</p>
-    <p class="footer-disclaimer">&copy; <span id="copyright-year"></span> TypeSure. Dictionary coverage may not include all Tamil words.</p>
+    <div class="footer-bottom" style="border-top:none;padding-top:0;">
+      <p class="footer-disclaimer">
+        &copy; <span id="copyright-year"></span> TypeSure. Dictionary coverage may not include all Tamil words.
+      </p>
+    </div>
   </div>
 </footer>
 

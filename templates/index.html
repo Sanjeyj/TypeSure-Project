@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TypeSure — Tamil Spelling Detection &amp; Correction</title>
-  <meta name="description" content="TypeSure is a Tamil-language typing assistant that identifies potential spelling mistakes and suggests corrections using dictionary lookup and edit-distance algorithms." />
+  <title>TypeSure — Write Tamil with Confidence</title>
+  <meta name="description" content="TypeSure is a Tamil-language spelling detection and correction system. Identify potential spelling mistakes and get suggestions using dictionary lookup and edit-distance algorithms." />
   <meta name="keywords" content="Tamil spelling checker, Tamil typing assistant, spell check, தமிழ் எழுத்துபிழை, Tamil language tool" />
   <meta name="author" content="TypeSure" />
-  <link rel="canonical" href="http://localhost:5000/" />
+  <link rel="canonical" href="https://type-sure-project.vercel.app/" />
 
   <!-- Favicon -->
   <link rel="icon" type="image/x-icon" href="/favicon.ico" />
@@ -16,9 +16,9 @@
 
   <!-- Open Graph -->
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="TypeSure — Tamil Spelling Detection &amp; Correction" />
-  <meta property="og:description" content="A Tamil-language typing assistant that identifies spelling mistakes and suggests corrections. No internet connection required." />
-  <meta property="og:url" content="http://localhost:5000/" />
+  <meta property="og:title" content="TypeSure — Write Tamil with Confidence" />
+  <meta property="og:description" content="Tamil spelling detection and correction. Identify mistakes and get intelligent suggestions — no internet required." />
+  <meta property="og:url" content="https://type-sure-project.vercel.app/" />
   <meta property="og:locale" content="ta_IN" />
   <meta property="og:site_name" content="TypeSure" />
 
@@ -27,7 +27,7 @@
   <meta name="twitter:title" content="TypeSure — Tamil Spelling Checker" />
   <meta name="twitter:description" content="Tamil spelling detection and correction using dictionary lookup and edit-distance algorithms." />
 
-  <!-- Google Fonts: Inter (UI) + Noto Sans Tamil (Tamil text) -->
+  <!-- Fonts: Inter (UI) + Noto Sans Tamil -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Tamil:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
@@ -41,20 +41,21 @@
 ═══════════════════════════════════════════════════════════════════════════ -->
 <header class="site-header">
   <div class="container header-inner">
-    <div class="brand">
+    <a href="/" class="brand" aria-label="TypeSure Home">
       <div class="brand-logo" aria-hidden="true">
-        <span class="logo-icon">ச</span>
+        <span class="logo-icon">த</span>
       </div>
       <div class="brand-text">
         <span class="brand-name">TypeSure</span>
         <span class="brand-subtitle">Tamil Spelling Assistant</span>
       </div>
-    </div>
+    </a>
     <nav class="site-nav" aria-label="Main navigation">
       <a href="/" class="nav-link active" id="nav-home">Home</a>
+      <a href="#main" class="nav-link">Editor</a>
       <a href="/about" class="nav-link" id="nav-about">About</a>
       <button class="btn btn-outline btn-sm" id="btn-import-open" title="Import additional Tamil word list">
-        📥 Import Dictionary
+        Import Dictionary
       </button>
     </nav>
     <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false">
@@ -68,35 +69,130 @@
 ═══════════════════════════════════════════════════════════════════════════ -->
 <section class="hero" aria-labelledby="hero-title">
   <div class="container hero-content">
-    <div class="hero-badge">🌐 Tamil Spelling Detection &amp; Correction System</div>
+    <div class="hero-label" aria-hidden="true">Tamil Language Technology</div>
     <h1 id="hero-title" class="hero-title">
-      Tamil Spelling Detection<br />
-      <span class="hero-accent">&amp; Correction</span>
+      Write Tamil<br />
+      with <span class="hero-accent">Confidence.</span>
     </h1>
     <p class="hero-desc">
-      Type or paste Tamil text below. TypeSure will identify potential spelling
-      issues and suggest corrections using a local dictionary and edit-distance
-      algorithms — no internet connection required.
+      Type or paste Tamil text and TypeSure will identify potential spelling
+      issues, suggest corrections using dictionary lookup and edit-distance
+      algorithms — all processed locally with no data sent externally.
     </p>
-    <div class="hero-features">
-      <div class="feature-chip">📖 Dictionary Lookup</div>
-      <div class="feature-chip">📐 Edit Distance</div>
-      <div class="feature-chip">🔒 Fully Local</div>
-      <div class="feature-chip">⚡ Instant Results</div>
+    <div class="hero-cta">
+      <a href="#main" class="btn btn-accent btn-lg">Start Checking</a>
+      <a href="#features" class="btn btn-outline-light btn-lg">Explore Features</a>
     </div>
   </div>
 </section>
 
 <!-- ═══════════════════════════════════════════════════════════════════════════
-     MAIN CONTENT
+     FEATURES
 ═══════════════════════════════════════════════════════════════════════════ -->
-<main class="main-content container" id="main">
+<section class="features-section" id="features" aria-labelledby="features-title">
+  <div class="container">
+    <div class="features-header">
+      <div class="section-label">Features</div>
+      <h2 id="features-title" class="section-title">Built for Tamil Text</h2>
+      <p class="section-desc">
+        Designed specifically for Tamil Unicode text with algorithms tailored
+        to detect and suggest corrections for common typing errors.
+      </p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <span class="feature-icon" aria-hidden="true">📖</span>
+        <h3 class="feature-title">Dictionary Lookup</h3>
+        <p class="feature-desc">
+          Every Tamil word is checked against a curated dictionary using
+          O(1) set membership testing for instant results.
+        </p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon" aria-hidden="true">📐</span>
+        <h3 class="feature-title">Edit Distance</h3>
+        <p class="feature-desc">
+          Levenshtein edit-distance algorithm identifies the closest
+          dictionary matches for unknown words, ranked by similarity.
+        </p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon" aria-hidden="true">🔒</span>
+        <h3 class="feature-title">Privacy First</h3>
+        <p class="feature-desc">
+          All text processing happens on the server. Your text is never
+          sent to external services. Statistics-only storage by default.
+        </p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon" aria-hidden="true">⚡</span>
+        <h3 class="feature-title">Instant Results</h3>
+        <p class="feature-desc">
+          Efficient length pre-filtering and optimised algorithms deliver
+          spell-check results in milliseconds, even for longer texts.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     HOW IT WORKS
+═══════════════════════════════════════════════════════════════════════════ -->
+<section class="how-section" aria-labelledby="how-title">
+  <div class="container">
+    <div class="how-header">
+      <div class="section-label">How It Works</div>
+      <h2 id="how-title" class="section-title">Three Simple Steps</h2>
+      <p class="section-desc">
+        TypeSure analyses your Tamil text and highlights words not found in
+        the dictionary, then offers ranked correction suggestions.
+      </p>
+    </div>
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-number" aria-hidden="true">1</div>
+        <h3 class="step-title">Type or Paste</h3>
+        <p class="step-desc">
+          Enter your Tamil text in the editor. You can also load a sample
+          to see TypeSure in action.
+        </p>
+      </div>
+      <div class="step-card">
+        <div class="step-number" aria-hidden="true">2</div>
+        <h3 class="step-title">Analyse</h3>
+        <p class="step-desc">
+          Click "Check Spelling" and TypeSure will tokenize, normalize
+          (Unicode NFC) and check every Tamil word.
+        </p>
+      </div>
+      <div class="step-card">
+        <div class="step-number" aria-hidden="true">3</div>
+        <h3 class="step-title">Review &amp; Correct</h3>
+        <p class="step-desc">
+          Review flagged words and suggestions. Accept corrections one by
+          one — nothing is changed without your approval.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     MAIN WORKSPACE
+═══════════════════════════════════════════════════════════════════════════ -->
+<main class="workspace-section container" id="main">
+
+  <!-- Workspace Title -->
+  <div class="workspace-title-bar">
+    <h2 class="section-title" style="font-size:1.35rem;">Spell Checker</h2>
+  </div>
 
   <!-- ─── Privacy Notice ──────────────────────────────────────────────────── -->
   <div class="notice notice-info" id="privacy-notice">
     <span class="notice-icon">🔒</span>
     <div>
-      <strong>Privacy:</strong> Your text is processed locally on this server and
+      <strong>Privacy:</strong> Your text is processed on this server and
       is <em>not</em> sent to any external service. By default, only statistics
       (word count, issue count) are stored — not your full text.
       <button class="notice-close" id="close-privacy-notice" aria-label="Dismiss privacy notice">✕</button>
@@ -106,9 +202,9 @@
   <!-- ─── Text Editor Card ─────────────────────────────────────────────────── -->
   <section class="card editor-card" aria-labelledby="editor-heading">
     <div class="card-header">
-      <h2 id="editor-heading" class="card-title">
+      <h3 id="editor-heading" class="card-title">
         <span class="card-icon">✏️</span> Tamil Text Editor
-      </h2>
+      </h3>
       <div class="editor-meta" id="editor-meta" aria-live="polite">
         <span id="char-count">0 characters</span>
         <span class="meta-sep">·</span>
@@ -125,21 +221,21 @@
         spellcheck="false"
         autocorrect="off"
         autocomplete="off"
-        rows="8"
+        rows="10"
       ></textarea>
     </div>
 
     <div class="editor-footer">
       <div class="sample-btns" aria-label="Load sample text">
         <span class="sample-label">Samples:</span>
-        <button class="btn btn-ghost btn-sm" id="sample-1" data-sample="1">Sample 1 (Correct)</button>
-        <button class="btn btn-ghost btn-sm" id="sample-2" data-sample="2">Sample 2 (With errors)</button>
-        <button class="btn btn-ghost btn-sm" id="sample-3" data-sample="3">Sample 3 (Mixed)</button>
+        <button class="btn btn-ghost btn-sm" id="sample-1" data-sample="1">Correct Tamil</button>
+        <button class="btn btn-ghost btn-sm" id="sample-2" data-sample="2">With Errors</button>
+        <button class="btn btn-ghost btn-sm" id="sample-3" data-sample="3">Mixed Content</button>
       </div>
       <div class="action-btns">
-        <button class="btn btn-ghost btn-sm" id="btn-clear" aria-label="Clear all text">🗑️ Clear</button>
+        <button class="btn btn-ghost btn-sm" id="btn-clear" aria-label="Clear all text">Clear</button>
         <button class="btn btn-primary" id="btn-check" aria-label="Check spelling">
-          <span class="btn-icon">🔍</span> Check Spelling
+          Check Spelling
         </button>
       </div>
     </div>
@@ -167,7 +263,7 @@
 
   <!-- ─── Statistics Cards ──────────────────────────────────────────────────── -->
   <section class="stats-section hidden" id="stats-section" aria-label="Check statistics">
-    <h2 class="section-title">📊 Check Statistics</h2>
+    <h3 class="section-title">Check Statistics</h3>
     <div class="stats-grid">
       <div class="stat-card" id="stat-total">
         <div class="stat-value" id="stat-total-val">—</div>
@@ -184,7 +280,7 @@
       <div class="stat-card stat-card--accent" id="stat-coverage">
         <div class="stat-value" id="stat-coverage-val">—</div>
         <div class="stat-label">Dictionary Coverage*</div>
-        <div class="stat-note">*Coverage = words found in this prototype's dictionary, not spelling accuracy</div>
+        <div class="stat-note">*Coverage = words found in this dictionary, not spelling accuracy</div>
       </div>
     </div>
   </section>
@@ -192,25 +288,25 @@
   <!-- ─── Results: Issues & Suggestions ────────────────────────────────────── -->
   <section class="card results-card hidden" id="results-section" aria-labelledby="results-heading">
     <div class="card-header">
-      <h2 id="results-heading" class="card-title">
+      <h3 id="results-heading" class="card-title">
         <span class="card-icon">📋</span> Potential Issues &amp; Suggestions
-      </h2>
+      </h3>
       <div class="results-actions">
         <button class="btn btn-ghost btn-sm" id="btn-undo" aria-label="Undo all corrections" disabled>
-          ↩️ Undo
+          Undo
         </button>
         <button class="btn btn-outline btn-sm" id="btn-recheck" aria-label="Re-check corrected text">
-          🔄 Recheck
+          Recheck
         </button>
         <button class="btn btn-outline btn-sm" id="btn-export" aria-label="Download report">
-          📥 Export Report
+          Export Report
         </button>
       </div>
     </div>
 
     <div id="no-issues-msg" class="empty-state hidden">
       <div class="empty-icon">✅</div>
-      <p class="empty-title">All words recognized!</p>
+      <p class="empty-title">All words recognized</p>
       <p class="empty-sub">Every Tamil word in your text was found in the dictionary.</p>
     </div>
 
@@ -220,11 +316,11 @@
   <!-- ─── Corrected Text Preview ────────────────────────────────────────────── -->
   <section class="card preview-card hidden" id="preview-section" aria-labelledby="preview-heading">
     <div class="card-header">
-      <h2 id="preview-heading" class="card-title">
+      <h3 id="preview-heading" class="card-title">
         <span class="card-icon">📄</span> Corrected Text Preview
-      </h2>
+      </h3>
       <button class="btn btn-ghost btn-sm" id="btn-copy-corrected" aria-label="Copy corrected text">
-        📋 Copy
+        Copy
       </button>
     </div>
     <div id="corrected-preview" class="corrected-preview tamil-text"></div>
@@ -236,11 +332,11 @@
   <!-- ─── History ───────────────────────────────────────────────────────────── -->
   <section class="card history-card" id="history-section" aria-labelledby="history-heading">
     <div class="card-header">
-      <h2 id="history-heading" class="card-title">
+      <h3 id="history-heading" class="card-title">
         <span class="card-icon">🕒</span> Recent Check History
-      </h2>
-      <button class="btn btn-ghost btn-sm btn-danger" id="btn-clear-history" aria-label="Clear all history">
-        🗑️ Clear History
+      </h3>
+      <button class="btn btn-ghost btn-sm btn-danger" id="btn-clear-history" aria-label="Clear all history" style="color:var(--color-danger);">
+        Clear History
       </button>
     </div>
     <div id="history-list" class="history-list">
@@ -267,17 +363,103 @@
 </main>
 
 <!-- ═══════════════════════════════════════════════════════════════════════════
+     ALGORITHM BRIEF
+═══════════════════════════════════════════════════════════════════════════ -->
+<section class="algo-brief-section" aria-labelledby="algo-title">
+  <div class="container">
+    <div class="section-label">Under the Hood</div>
+    <h2 id="algo-title" class="section-title">How TypeSure Works</h2>
+    <p class="section-desc" style="margin-bottom:var(--sp-8);">
+      TypeSure combines Unicode normalization, dictionary lookup and
+      edit-distance algorithms to detect potential Tamil spelling issues.
+    </p>
+    <div class="algo-brief-grid">
+      <div class="algo-brief-card">
+        <h3>Unicode NFC Normalization</h3>
+        <p>
+          Tamil text from different systems may store the same character in
+          different binary forms. NFC normalization ensures consistent
+          representation before any comparison.
+        </p>
+      </div>
+      <div class="algo-brief-card">
+        <h3>Dictionary Set Lookup</h3>
+        <p>
+          Each Tamil token is checked against an in-memory Python set.
+          Set membership testing is O(1) average case, making dictionary
+          checks near-instant even for long texts.
+        </p>
+      </div>
+      <div class="algo-brief-card">
+        <h3>Levenshtein Edit Distance</h3>
+        <p>
+          For unknown words, the Wagner–Fischer algorithm computes the
+          minimum edits (insertions, deletions, substitutions) needed to
+          match dictionary words, with a threshold of ≤ 2 edits.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     PRIVACY BAND
+═══════════════════════════════════════════════════════════════════════════ -->
+<section class="privacy-band" aria-labelledby="privacy-title">
+  <div class="container">
+    <div class="privacy-band-inner">
+      <div class="privacy-icon" aria-hidden="true">🔒</div>
+      <div>
+        <h2 id="privacy-title">Your Text Stays Private</h2>
+        <p>
+          TypeSure processes all text on its own server. No data is sent to
+          third-party APIs or cloud services. By default, only aggregate
+          statistics (word count, issue count) are stored in the local database
+          — your full text is never saved unless you explicitly opt in.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
      FOOTER
 ═══════════════════════════════════════════════════════════════════════════ -->
 <footer class="site-footer">
   <div class="container footer-inner">
-    <p class="footer-brand">TypeSure</p>
-    <p class="footer-desc">
-      Tamil Spelling Detection &amp; Correction · Powered by dictionary lookup &amp; edit-distance algorithms
-    </p>
-    <p class="footer-disclaimer">
-      &copy; <span id="copyright-year"></span> TypeSure. Dictionary coverage may not include all Tamil words.
-    </p>
+    <div class="footer-top">
+      <div class="footer-brand-block">
+        <p class="footer-brand">TypeSure</p>
+        <p class="footer-desc">
+          Tamil Spelling Detection &amp; Correction System.
+          Built with dictionary lookup and Levenshtein edit-distance algorithms.
+        </p>
+      </div>
+      <div class="footer-links">
+        <div class="footer-link-group">
+          <h4>Navigation</h4>
+          <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="#main">Editor</a></li>
+            <li><a href="/about">About</a></li>
+          </ul>
+        </div>
+        <div class="footer-link-group">
+          <h4>Resources</h4>
+          <ul>
+            <li><a href="/about#algorithms">Algorithms</a></li>
+            <li><a href="/about#privacy">Privacy</a></li>
+            <li><a href="/about#limitations">Limitations</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p class="footer-disclaimer">
+        &copy; <span id="copyright-year"></span> TypeSure. Dictionary coverage may not include all Tamil words.
+      </p>
+      <p class="footer-tech">Python · Flask · SQLite · Vanilla JS</p>
+    </div>
   </div>
 </footer>
 
@@ -289,7 +471,7 @@
 <div class="modal-overlay hidden" id="import-modal" role="dialog" aria-modal="true" aria-labelledby="import-modal-title">
   <div class="modal">
     <div class="modal-header">
-      <h3 id="import-modal-title">📥 Import Dictionary</h3>
+      <h3 id="import-modal-title">Import Dictionary</h3>
       <button class="modal-close" id="import-modal-close" aria-label="Close modal">✕</button>
     </div>
     <div class="modal-body">
@@ -319,7 +501,7 @@
 <div class="modal-overlay hidden" id="clear-history-modal" role="dialog" aria-modal="true" aria-labelledby="clear-history-title">
   <div class="modal modal--sm">
     <div class="modal-header">
-      <h3 id="clear-history-title">🗑️ Clear History</h3>
+      <h3 id="clear-history-title">Clear History</h3>
       <button class="modal-close" id="clear-history-modal-close" aria-label="Close">✕</button>
     </div>
     <div class="modal-body">
@@ -331,6 +513,9 @@
     </div>
   </div>
 </div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toast-container" aria-live="polite"></div>
 
 <script src="/static/js/app.js"></script>
 </body>

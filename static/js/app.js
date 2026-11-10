@@ -1,6 +1,6 @@
 /**
  * TypeSure — Frontend Application
- * app.js  (v1.1 — post-audit fix)
+ * app.js  (v2.0 — Premium UI Redesign)
  *
  * Responsibilities:
  *  - Capture Tamil text input and send to /api/check
@@ -9,16 +9,13 @@
  *  - Load and display check history from /api/history
  *  - Handle dictionary import via /api/dictionary/import
  *  - Export report via /api/report
+ *  - Toast notification system for user feedback
  *
  * Security note:
  *  - User-submitted text is NEVER inserted via innerHTML.
  *  - Only suggestion words (returned from the server, themselves sourced
  *    from the dictionary) are inserted as textContent.
  *  - No eval() or Function() usage.
- *
- * Fix v1.1: All index-page-specific event listeners and DOM access are now
- *  wrapped inside isEditorPage guard to prevent null-access errors on other
- *  pages (e.g., /about).
  */
 
 "use strict";
@@ -94,6 +91,8 @@ const el = {
   hamburger: $("hamburger"),
   siteNav:   document.querySelector(".site-nav"),
   closePrivacyNotice: $("close-privacy-notice"),
+  // Toast
+  toastContainer: $("toast-container"),
 };
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -101,6 +100,34 @@ const el = {
    isEditorPage = true only when the textarea is present (index.html)
 ═══════════════════════════════════════════════════════════════════════════ */
 const isEditorPage = Boolean(el.input);
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   TOAST NOTIFICATION SYSTEM
+═══════════════════════════════════════════════════════════════════════════ */
+
+function showToast(message, type = "info", duration = 4000) {
+  const container = el.toastContainer;
+  if (!container) return;
+
+  const toast = document.createElement("div");
+  toast.className = `toast toast-${type}`;
+
+  const iconMap = { success: "✓", error: "✕", info: "ℹ" };
+  const iconEl = document.createElement("span");
+  iconEl.className = "toast-icon";
+  iconEl.textContent = iconMap[type] || "ℹ";
+
+  const textEl = document.createElement("span");
+  textEl.textContent = message;
+
+  toast.append(iconEl, textEl);
+  container.appendChild(toast);
+
+  setTimeout(() => {
+    toast.classList.add("toast-out");
+    toast.addEventListener("animationend", () => toast.remove());
+  }, duration);
+}
 
 /* ═══════════════════════════════════════════════════════════════════════════
    UTILITY HELPERS
@@ -111,6 +138,9 @@ function showError(msg) {
   el.errorMessage.textContent = msg;
   el.errorBanner.classList.remove("hidden");
   setTimeout(() => el.errorBanner.classList.add("hidden"), 8000);
+
+  // Also show as toast
+  showToast(msg, "error", 6000);
 }
 function hideError() {
   if (el.errorBanner) el.errorBanner.classList.add("hidden");
@@ -239,6 +269,16 @@ if (isEditorPage) {
       renderPreview();
       loadHistory();
 
+      // Show success toast
+      if (data.stats.issues_found === 0) {
+        showToast("All words recognized — no issues found.", "success");
+      } else {
+        showToast(
+          `Found ${data.stats.issues_found} potential issue${data.stats.issues_found > 1 ? "s" : ""} in ${data.stats.total_words_scanned} words.`,
+          "info"
+        );
+      }
+
     } catch (err) {
       showError("Could not reach the server. Is Flask running?");
       console.error(err);
@@ -366,6 +406,7 @@ if (isEditorPage) {
 
     renderPreview();
     updateCorrectionsCounter();
+    showToast(`Replaced "${wrongWord}" → "${correctWord}" (${changed} occurrence${changed > 1 ? "s" : ""})`, "success", 3000);
   }
 
   /* ─── Undo all ──────────────────────────────────────────────────────────── */
@@ -380,6 +421,7 @@ if (isEditorPage) {
       renderIssues(state.lastResult.issues);
       renderPreview();
       updateCorrectionsCounter();
+      showToast("All corrections undone.", "info", 3000);
     });
   }
 
@@ -423,8 +465,7 @@ if (isEditorPage) {
       const text = state.currentSpans.map((s) => s.text).join("");
       try {
         await navigator.clipboard.writeText(text);
-        el.btnCopyCorrected.textContent = "✅ Copied!";
-        setTimeout(() => { el.btnCopyCorrected.textContent = "📋 Copy"; }, 2000);
+        showToast("Corrected text copied to clipboard.", "success", 3000);
       } catch {
         showError("Could not copy to clipboard. Please copy manually.");
       }
@@ -436,6 +477,7 @@ if (isEditorPage) {
   if (el.btnExport) {
     el.btnExport.addEventListener("click", () => {
       window.location.href = "/api/report?format=csv";
+      showToast("Report download started.", "info", 3000);
     });
   }
 
@@ -513,7 +555,10 @@ if (isEditorPage) {
     el.btnClearHistoryConfirm.addEventListener("click", async () => {
       try {
         const resp = await fetch("/api/history", { method: "DELETE" });
-        if (resp.ok) renderHistory([]);
+        if (resp.ok) {
+          renderHistory([]);
+          showToast("History cleared.", "success", 3000);
+        }
       } catch { showError("Failed to clear history."); }
       closeClearHistoryModal();
     });
@@ -599,8 +644,9 @@ if (isEditorPage) {
         if (!resp.ok) {
           el.importResult.textContent = data.error || "Import failed.";
           el.importResult.className = "import-result error";
+          showToast(data.error || "Import failed.", "error");
         } else {
-          let msg = `✅ Import complete: ${data.added} new words added.`;
+          let msg = `Import complete: ${data.added} new words added.`;
           if (data.duplicates > 0) msg += ` ${data.duplicates} duplicates skipped.`;
           if (data.invalid > 0) msg += ` ${data.invalid} invalid lines skipped.`;
           if (data.errors && data.errors.length > 0) {
@@ -608,12 +654,14 @@ if (isEditorPage) {
           }
           el.importResult.textContent = msg;
           el.importResult.className = "import-result success";
+          showToast(`${data.added} new words added to dictionary.`, "success");
         }
         el.importResult.classList.remove("hidden");
       } catch {
         el.importResult.textContent = "Network error during import.";
         el.importResult.className = "import-result error";
         el.importResult.classList.remove("hidden");
+        showToast("Network error during import.", "error");
       }
 
       el.btnImportConfirm.textContent = "Import";
@@ -628,6 +676,19 @@ if (isEditorPage) {
       modal.addEventListener("click", (e) => {
         if (e.target === modal) modal.classList.add("hidden");
       });
+    }
+  });
+
+  /* ─── Close modals on Escape key ──────────────────────────────────────── */
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      if (el.importModal && !el.importModal.classList.contains("hidden")) {
+        closeImportModal();
+      }
+      if (el.clearHistoryModal && !el.clearHistoryModal.classList.contains("hidden")) {
+        closeClearHistoryModal();
+      }
     }
   });
 
