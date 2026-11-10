@@ -291,3 +291,33 @@ class TestAuthRoutesAndIsolation:
         )
         h2 = app_client.get("/api/history").get_json()["history"]
         assert len(h2) == 0  # User 2 cannot see User 1's history!
+
+    def test_root_serves_login_first_then_dashboard(self, app_client):
+        # 1. Unauthenticated user visits root "/" -> gets Login page first (200 OK)
+        res_guest = app_client.get("/")
+        assert res_guest.status_code == 200
+        assert b"Sign in to continue" in res_guest.data
+        assert b"login-form" in res_guest.data
+
+        # 2. Authenticate user
+        app_client.post(
+            "/api/auth/register",
+            json={
+                "full_name": "Root Test User",
+                "email": "rootuser@typesure.ta",
+                "password": "Password123!",
+                "confirm_password": "Password123!",
+                "agree_terms": True,
+            },
+        )
+
+        # 3. Authenticated user visits root "/" -> redirected inside to /dashboard (302)
+        res_auth = app_client.get("/")
+        assert res_auth.status_code == 302
+        assert "/dashboard" in res_auth.headers["Location"]
+
+        # 4. Authenticated user visits /login -> redirected inside to /dashboard (302)
+        res_login = app_client.get("/login")
+        assert res_login.status_code == 302
+        assert "/dashboard" in res_login.headers["Location"]
+

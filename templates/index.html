@@ -100,7 +100,11 @@
       algorithms — all processed locally with no data sent externally.
     </p>
     <div class="hero-cta">
-      <a href="#main" class="btn btn-accent btn-lg">Start Checking</a>
+      {% if current_user %}
+        <a href="/dashboard" class="btn btn-accent btn-lg">Open Workspace</a>
+      {% else %}
+        <a href="/login" class="btn btn-accent btn-lg">Sign In to Start</a>
+      {% endif %}
       <a href="#features" class="btn btn-outline-light btn-lg">Explore Features</a>
     </div>
   </div>

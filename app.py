@@ -179,6 +179,19 @@ def _require_json():
 # ─── Page routes ─────────────────────────────────────────────────────────────
 @app.route("/")
 def index():
+    """
+    Root entry point:
+    Presents the Login page first for unauthenticated users.
+    If the user is already authenticated, routes them directly inside the website (/dashboard).
+    """
+    if session.get("user_id"):
+        return redirect(url_for("dashboard"))
+    return render_template("login.html")
+
+
+@app.route("/landing")
+def landing():
+    """Public showcase / overview landing page."""
     return render_template("index.html")
 
 
