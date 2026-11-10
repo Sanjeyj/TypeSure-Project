@@ -1,21 +1,29 @@
 """
 app.py — TypeSure Flask application entry point.
 
+Intelligent Tamil Spelling Detection and Correction System.
+B.Sc. Computer Science Final-Year Project.
+
 Routes:
-  GET  /                      → Main editor page
-  GET  /about                 → About / limitations page
-  POST /api/check             → Spell-check submitted text
-  GET  /api/history           → Recent check history
-  DELETE /api/history         → Clear all history
-  POST /api/dictionary/import → Import additional word list
-  GET  /api/report            → Download CSV/text report
-  GET  /api/stats             → Dictionary and DB summary stats
+  GET    /                      → Main editor page
+  GET    /about                 → About & technical documentation page
+  POST   /api/check             → Spell-check submitted text
+  GET    /api/history           → Recent check history (session-isolated)
+  DELETE /api/history           → Clear all history for current session
+  DELETE /api/history/<id>      → Delete individual check record
+  POST   /api/dictionary/import → Import additional word list
+  GET    /api/report            → Download CSV/text report
+  GET    /api/stats             → Dictionary and DB summary stats
+  GET    /api/benchmark         → Empirical comparison of BK-Tree vs Linear search
+  GET    /healthz               → Health check probe
 """
 
 import csv
 import io
 import os
-import json
+import secrets
+import time
+import logging
 from datetime import datetime, timezone
 
 from flask import (
@@ -30,31 +38,59 @@ from flask import (
 )
 
 # Initialize the database before importing modules that depend on it
-from typesure.database import init_db, save_check, get_history, delete_history, get_summary_stats
+from typesure.database import (
+    init_db,
+    save_check,
+    get_history,
+    delete_history,
+    delete_history_item,
+    get_summary_stats,
+)
 from typesure.spellchecker import check_text
 from typesure.dictionary_loader import dictionary as tamil_dict, MAX_IMPORT_SIZE_BYTES
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+)
+logger = logging.getLogger("TypeSure")
 
 app = Flask(__name__)
 
 # ─── Configuration ──────────────────────────────────────────────────────────
-
 app.config["MAX_CONTENT_LENGTH"] = 4 * 1024 * 1024   # 4 MB request limit
-MAX_TEXT_LENGTH = 20_000   # characters
+MAX_TEXT_LENGTH = 20_000                             # characters
 DEBUG_MODE = os.environ.get("FLASK_DEBUG", "0") == "1"
 
 # ─── Initialize DB on startup ────────────────────────────────────────────────
-
 with app.app_context():
     init_db()
 
 
-# ─── Security headers (applied to every response) ────────────────────────────
+# ─── Session identification helper ───────────────────────────────────────────
+def _get_session_id() -> str:
+    """
+    Extract or generate a client session UUID for history isolation.
+    Checks 'X-Session-ID' request header, then 'typesure_session' cookie.
+    """
+    header_val = request.headers.get("X-Session-ID")
+    if header_val and len(header_val) <= 64:
+        return header_val.strip()
 
+    cookie_val = request.cookies.get("typesure_session")
+    if cookie_val and len(cookie_val) <= 64:
+        return cookie_val.strip()
+
+    return "default_session"
+
+
+# ─── Security headers (applied to every response) ────────────────────────────
 @app.after_request
 def add_security_headers(response):
     """
     Attach security-focused HTTP headers to every outbound response.
-    CSP is intentionally permissive for the Google Fonts CDN and local assets.
+    Sets session cookie if not already established.
     """
     response.headers["X-Frame-Options"] = "SAMEORIGIN"
     response.headers["X-Content-Type-Options"] = "nosniff"
@@ -72,11 +108,21 @@ def add_security_headers(response):
         "connect-src 'self'; "
         "frame-ancestors 'none';"
     )
+
+    if not request.cookies.get("typesure_session"):
+        session_id = _get_session_id()
+        response.set_cookie(
+            "typesure_session",
+            session_id,
+            max_age=30 * 86400,
+            httponly=False,
+            samesite="Lax",
+        )
+
     return response
 
 
 # ─── Helper utilities ────────────────────────────────────────────────────────
-
 def _json_error(message: str, status: int = 400):
     return jsonify({"error": message}), status
 
@@ -92,7 +138,6 @@ def _require_json():
 
 
 # ─── Page routes ─────────────────────────────────────────────────────────────
-
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -104,7 +149,6 @@ def about():
 
 
 # ─── Static SEO / crawl files ────────────────────────────────────────────────
-
 @app.route("/favicon.ico")
 def favicon():
     return send_from_directory(
@@ -125,7 +169,6 @@ def robots():
 
 @app.route("/sitemap.xml")
 def sitemap():
-    """Dynamically generate a minimal sitemap for the two public pages."""
     base_url = request.host_url.rstrip("/")
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     xml = (
@@ -138,23 +181,23 @@ def sitemap():
     return Response(xml, mimetype="application/xml")
 
 
-# ─── Health check (for deployment probes) ────────────────────────────────────
-
+# ─── Health check ────────────────────────────────────────────────────────────
 @app.route("/healthz")
 def healthz():
-    """Lightweight health probe — returns 200 JSON when the app is up."""
-    return jsonify({"status": "ok", "app": "TypeSure"})
+    return jsonify({
+        "status": "ok",
+        "app": "TypeSure",
+        "version": "2.0.0",
+        "dictionary_size": len(tamil_dict.words),
+    })
 
 
 # ─── API: Spell Check ────────────────────────────────────────────────────────
-
 @app.route("/api/check", methods=["POST"])
 def api_check():
     """
     POST /api/check
-    Body: { "text": "...", "store_text": false }
-
-    Returns spell-check results including spans, issues, and statistics.
+    Body: { "text": "...", "store_text": false, "method": "bktree"|"linear" }
     """
     data = _require_json()
 
@@ -171,50 +214,61 @@ def api_check():
 
     store_text = bool(data.get("store_text", False))
     corrections = int(data.get("corrections", 0))
+    search_method = data.get("method", "bktree")
+    session_id = _get_session_id()
 
-    result = check_text(text)
+    result = check_text(text, search_method=search_method)
 
-    # Persist to history
+    # Persist to history with session isolation
     check_id = save_check(
         word_count=result["stats"]["total_words_scanned"],
         issue_count=result["stats"]["issues_found"],
         corrections=corrections,
         input_text=text,
         store_text=store_text,
+        session_id=session_id,
     )
     result["check_id"] = check_id
+    result["session_id"] = session_id
     result["timestamp"] = datetime.now(timezone.utc).isoformat()
 
     return jsonify(result)
 
 
 # ─── API: History ────────────────────────────────────────────────────────────
-
 @app.route("/api/history", methods=["GET"])
 def api_history():
-    """GET /api/history — Return the 20 most recent check records."""
+    """GET /api/history — Return recent check records for this session."""
     limit = request.args.get("limit", 20, type=int)
     limit = max(1, min(limit, 100))
-    rows = get_history(limit=limit)
-    summary = get_summary_stats()
-    return jsonify({"history": rows, "summary": summary})
+    session_id = _get_session_id()
+    rows = get_history(limit=limit, session_id=session_id)
+    summary = get_summary_stats(session_id=session_id)
+    return jsonify({"history": rows, "summary": summary, "session_id": session_id})
 
 
 @app.route("/api/history", methods=["DELETE"])
 def api_delete_history():
-    """DELETE /api/history — Remove all history records."""
-    deleted = delete_history()
-    return jsonify({"deleted": deleted, "message": "History cleared."})
+    """DELETE /api/history — Remove all history records for this session."""
+    session_id = _get_session_id()
+    deleted = delete_history(session_id=session_id)
+    return jsonify({"deleted": deleted, "message": "History cleared for session."})
+
+
+@app.route("/api/history/<int:record_id>", methods=["DELETE"])
+def api_delete_history_item(record_id: int):
+    """DELETE /api/history/<id> — Remove a single history record."""
+    session_id = _get_session_id()
+    success = delete_history_item(record_id, session_id=session_id)
+    if not success:
+        return _json_error("Record not found or not owned by session.", 404)
+    return jsonify({"success": True, "deleted_id": record_id})
 
 
 # ─── API: Dictionary Import ──────────────────────────────────────────────────
-
 @app.route("/api/dictionary/import", methods=["POST"])
 def api_import_dictionary():
-    """
-    POST /api/dictionary/import
-    Accepts a UTF-8 text file upload (multipart/form-data, field: 'file').
-    """
+    """POST /api/dictionary/import — Upload UTF-8 .txt word list."""
     if "file" not in request.files:
         return _json_error("No file field in request.", 400)
 
@@ -222,7 +276,6 @@ def api_import_dictionary():
     if f.filename == "":
         return _json_error("No file selected.", 400)
 
-    # Enforce .txt extension only
     if not f.filename.lower().endswith(".txt"):
         return _json_error("Only .txt files are accepted.", 415)
 
@@ -242,29 +295,20 @@ def api_import_dictionary():
 
 
 # ─── API: Report Export ──────────────────────────────────────────────────────
-
 @app.route("/api/report", methods=["GET"])
 def api_report():
-    """
-    GET /api/report
-    Query params:
-      check_id  : optional int — if provided, include check-level data
-      format    : 'csv' (default) or 'txt'
-
-    Returns a downloadable report file.
-    """
+    """GET /api/report — Export recent checks as CSV or text report."""
     fmt = request.args.get("format", "csv").lower()
     if fmt not in ("csv", "txt"):
         return _json_error("'format' must be 'csv' or 'txt'.")
 
-    # Pull recent history for the report
-    rows = get_history(limit=50)
+    session_id = _get_session_id()
+    rows = get_history(limit=50, session_id=session_id)
     now_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
 
     disclaimer = (
-        "NOTE: Results are generated by a limited prototype dictionary and "
-        "may not reflect all correct Tamil spellings. This tool is a student "
-        "prototype and is NOT a production-grade Tamil spell checker."
+        "NOTE: Results are generated by TypeSure prototype dictionary and "
+        "Levenshtein edit-distance algorithms. This tool is an academic prototype."
     )
 
     if fmt == "csv":
@@ -317,20 +361,55 @@ def api_report():
 
 
 # ─── API: Stats ──────────────────────────────────────────────────────────────
-
 @app.route("/api/stats", methods=["GET"])
 def api_stats():
     """GET /api/stats — Dictionary and database summary."""
+    session_id = _get_session_id()
     return jsonify({
         "dictionary": tamil_dict.stats(),
-        "database": get_summary_stats(),
+        "database": get_summary_stats(session_id=session_id),
+    })
+
+
+# ─── API: Algorithm Benchmark ────────────────────────────────────────────────
+@app.route("/api/benchmark", methods=["GET"])
+def api_benchmark():
+    """
+    GET /api/benchmark?word=வணககம்
+    Compare BK-Tree vs Linear length-filtered search speed and candidate counts.
+    """
+    word = request.args.get("word", "வணககம்")
+
+    # Linear benchmark
+    t0 = time.perf_counter()
+    linear_cands = tamil_dict.search_candidates_linear(word, max_dist=2)
+    t_linear_ms = round((time.perf_counter() - t0) * 1000, 3)
+
+    # BK-tree benchmark
+    t1 = time.perf_counter()
+    bktree_cands = tamil_dict.search_candidates_bktree(word, max_dist=2)
+    t_bktree_ms = round((time.perf_counter() - t1) * 1000, 3)
+
+    speedup = round(t_linear_ms / max(t_bktree_ms, 0.001), 2)
+
+    return jsonify({
+        "query_word": word,
+        "dictionary_size": len(tamil_dict.words),
+        "bktree_nodes": tamil_dict.bktree.size,
+        "bktree": {
+            "time_ms": t_bktree_ms,
+            "candidates_found": len(bktree_cands),
+        },
+        "linear_length_filtered": {
+            "time_ms": t_linear_ms,
+            "candidates_found": len(linear_cands),
+        },
+        "speedup_factor": speedup,
     })
 
 
 # ─── Error handlers ──────────────────────────────────────────────────────────
-
 def _wants_html():
-    """Return True when the request was made by a browser expecting HTML."""
     best = request.accept_mimetypes.best_match(["text/html", "application/json"])
     return best == "text/html"
 
@@ -342,7 +421,6 @@ def bad_request(e):
 
 @app.errorhandler(404)
 def not_found(e):
-    # Return a styled HTML 404 page for browser requests; JSON for API clients
     if _wants_html():
         return render_template("404.html"), 404
     return jsonify({"error": "Not found"}), 404
@@ -366,7 +444,6 @@ def server_error(e):
 
 
 # ─── Entry point ─────────────────────────────────────────────────────────────
-
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=DEBUG_MODE)

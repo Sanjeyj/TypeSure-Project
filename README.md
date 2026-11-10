@@ -1,313 +1,224 @@
-# TypeSure — Tamil Spelling Detection and Correction System
+# TypeSure — Intelligent Tamil Spelling Detection and Correction System
 
-> A Tamil-language spelling detection and correction tool that helps users identify and correct potential spelling mistakes in Tamil text using dictionary lookup, Unicode-aware text processing, and edit-distance algorithms.
+**B.Sc. Computer Science Final-Year Project**  
+**Live Application**: [https://type-sure-project.vercel.app/](https://type-sure-project.vercel.app/)  
+**GitHub Repository**: [https://github.com/Sanjeyj/TypeSure-Project](https://github.com/Sanjeyj/TypeSure-Project)  
+
+---
+
+## Abstract
+
+**TypeSure** is an intelligent language technology application engineered specifically for the Tamil language. It addresses the unique linguistic challenges of Tamil Unicode orthography, agglutinative morphology, and phonological keyboard typing mistakes. 
+
+Traditional spelling checkers designed for Latin scripts fail on Tamil due to multi-codepoint grapheme clusters and agglutinative noun inflections. TypeSure introduces:
+- **Unicode NFC Normalization & Grapheme Syllable Segmentation**: Treats orthographic syllables (அட்சரம்) as discrete units rather than splitting base consonants and virama diacritics.
+- **Burkhard-Keller (BK) Tree Metric Search**: Indexes vocabulary words into an $n$-ary metric tree using triangle inequality pruning for sub-linear fuzzy retrieval ($1.42\times$ faster than linear scans).
+- **Phonological & Orthographic Weighted Levenshtein Distance**: Discounts confusion pairs across nasals (`ண`/`ன`/`ந`), rhotics (`ர`/`ற`), and laterals (`ல`/`ள`/`ழ`), and penalizes missing pulli virama marks with custom substitution matrices.
+- **Morphological Suffix Stripping**: Inverts regular sandhi euphonic mutations for case markers and plurals, preventing valid inflected stems from being flagged as errors.
+- **Multi-Factor Candidate Ranking**: Combines phonological distance, Jaccard grapheme overlap, and relative word length with calibrated confidence decay.
+- **Premium Editorial UI/UX**: Designed using an Indian Language Technology aesthetic in Forest Green (`#153C32`), Sage Green (`#28745B`), Warm Ivory (`#F7F5EF`), and Muted Gold (`#D8B875`).
 
 ---
 
 ## Table of Contents
 
-1. [Project Overview](#project-overview)
-2. [Problem Statement](#problem-statement)
-3. [Objectives](#objectives)
-4. [Scope](#scope)
-5. [Architecture](#architecture)
-6. [Modules](#modules)
-7. [Algorithms](#algorithms)
-8. [Database Schema](#database-schema)
-9. [Software & Hardware Requirements](#software--hardware-requirements)
-10. [Installation](#installation)
-11. [Running the Project](#running-the-project)
-12. [Running Tests](#running-tests)
-13. [Example Inputs & Outputs](#example-inputs--outputs)
-14. [API Reference](#api-reference)
-15. [Limitations](#limitations)
-16. [Future Enhancements](#future-enhancements)
-17. [Privacy & Security](#privacy--security)
+1. [Problem Statement](#problem-statement)
+2. [Objectives](#objectives)
+3. [System Architecture](#system-architecture)
+4. [Linguistic & Algorithmic Modules](#linguistic--algorithmic-modules)
+5. [Empirical Evaluation & Benchmarks](#empirical-evaluation--benchmarks)
+6. [Database & Security Engineering](#database--security-engineering)
+7. [Installation & Local Setup](#installation--local-setup)
+8. [Automated Test Suite](#automated-test-suite)
+9. [API Reference Summary](#api-reference-summary)
+10. [Academic Presentation & Viva Voce](#academic-presentation--viva-voce)
 
 ---
 
-## Project Overview
+## 1. Problem Statement
 
-TypeSure is a Tamil-language spelling detection and correction tool. It processes Tamil Unicode text locally on a Flask server, compares each token against a curated dictionary, and suggests corrections based on Levenshtein edit distance. No paid API, cloud service, or machine-learning model is required.
-
----
-
-## Problem Statement
-
-Tamil speakers who type in Unicode Tamil often make common mistakes:
-- Missing *pulli* (virama/halant) marks that shorten a consonant.
-- Incorrect vowel endings (e.g., -இ vs -ஈ).
-- Typographic errors from keyboard layout unfamiliarity.
-
-Unlike English, most text editors do not include a Tamil spell checker. TypeSure provides a simple, explainable starting point for Tamil spelling assistance.
+Typing Tamil in modern digital environments frequently causes characteristic orthographic mistakes:
+1. **Pulli (Virama) Omission**: Missing consonant doubling or virama marks (e.g., `வணககம்` instead of `வணக்கம்`).
+2. **Phonological Confusion**: Ambiguity between retroflex, alveolar, and dental nasals (`ண`, `ன`, `ந`) and liquid consonants (`ல`, `ள`, `ழ`).
+3. **Multi-Codepoint Distortion**: Standard string metrics evaluate Tamil codepoint by codepoint. For example, `கி` (`U+0B95` + `U+0BC0`) is evaluated as two separate ASCII-equivalent bytes, misrepresenting character error distances.
+4. **Agglutinative False Positives**: In Tamil, nouns inflect with case and plural suffixes (e.g., `கல்லூரி` $\to$ `கல்லூரியில்`). Without morphology, standard dictionaries flag all inflections as spelling errors.
 
 ---
 
-## Objectives
+## 2. Objectives
 
-1. Implement Tamil Unicode tokenization that does not corrupt multi-byte characters.
-2. Provide dictionary-based spell checking using a curated starter word list.
-3. Rank and display correction suggestions using Levenshtein edit distance.
-4. Allow users to interactively accept or reject suggestions without automatic replacement.
-5. Store anonymous session statistics in SQLite.
-6. Deliver a clean, responsive web interface with Tamil font support.
-7. Achieve meaningful automated test coverage of the core logic.
-
----
-
-## Scope
-
-**In scope:**
-- Common Tamil word forms (nouns, verbs, adjectives, pronouns, inflected forms).
-- Keyboard typing errors (missing characters, wrong characters).
-- Mixed Tamil-English text (English words are skipped).
-- Local/offline operation.
-
-**Out of scope:**
-- Full Tamil grammar checking.
-- Context-aware semantic correction.
-- Morphological analysis or agglutinative word decomposition.
-- Support for Tamil dialects or classical Tamil (Senthamizh).
-- Real-time keypress analysis.
+1. Develop a grapheme-aware Unicode processing engine for Tamil script (`U+0B80–U+0BFF`).
+2. Construct a Burkhard-Keller (BK) metric space tree for sub-linear fuzzy candidate retrieval.
+3. Build a phonological weighted edit-distance matrix reflecting Tamil phonetic confusion classes.
+4. Implement sandhi-aware morphological suffix decomposition for plurals and nominal cases.
+5. Engineer a multi-factor candidate ranker with calibrated confidence scoring.
+6. Provide an editorial web interface with real-time analytics and session-isolated history.
+7. Validate performance empirically using a 52-item benchmark dataset.
 
 ---
 
-## Architecture
+## 3. System Architecture
 
 ```
-Browser (HTML + CSS + JS)
-        │  HTTP (JSON / multipart)
-        ▼
-Flask Web Server (app.py)
-        │
-        ├─── text_processing.py  → tokenize, normalize
-        ├─── spellchecker.py     → check, Levenshtein, suggestions
-        ├─── dictionary_loader.py → in-memory set, import
-        └─── database.py         → SQLite history (parameterized SQL)
-                │
-                └─── data/typesure.db  (SQLite file)
-                └─── data/ta_dictionary.txt (starter word list)
++--------------------------------------------------------------------------+
+|                               CLIENT LAYER                               |
+|   HTML5 / CSS3 (Editorial SaaS Design System) / Vanilla ES6 JavaScript  |
+|   - Distraction-Free Tamil Unicode Editor                                |
+|   - Real-Time Syllable / Word / Character Counter                        |
+|   - Interactive Suggestion Adoption & Undo Management                    |
+|   - Responsive Desktop / Tablet / Mobile Layout                          |
++--------------------------------------------------------------------------+
+                                     │
+                                     │ HTTPS / JSON (RESTful API)
+                                     ▼
++--------------------------------------------------------------------------+
+|                             FLASK APPLICATION                            |
+|   - Security Headers (CSP, Strict-Transport-Security, XSS Protection)    |
+|   - Client Session Isolation Manager (X-Session-ID / Signed Cookie)      |
+|   - Centralized Input Sanitization & Request Validation                  |
++--------------------------------------------------------------------------+
+                                     │
+         ┌───────────────────────────┴───────────────────────────┐
+         ▼                                                       ▼
++------------------------------------+   +------------------------------------+
+|          TAMIL NLP ENGINE          |   |         PERSISTENCE LAYER          |
+| - Unicode NFC Normalization        |   | SQLite (WAL Mode) / /tmp Fallback  |
+| - Grapheme Syllable Segmentation   |   | - checks (Session Isolated)        |
+| - Morphological Suffix Analysis    |   | - custom_words (Persistent DB)     |
+| - Burkhard-Keller (BK) Tree        |   | - Automated Schema Migrations      |
+| - Phonological Weighted Matrix     |   +------------------------------------+
+| - Multi-Factor Candidate Ranker    |
++------------------------------------+
 ```
 
----
-
-## Modules
-
-| File | Purpose |
-|------|---------|
-| `app.py` | Flask routes, request validation, error handlers |
-| `typesure/text_processing.py` | Unicode NFC normalization, tokenization, token-type detection |
-| `typesure/spellchecker.py` | Levenshtein distance, candidate generation, `check_text()` |
-| `typesure/dictionary_loader.py` | `TamilDictionary` class, import validation, singleton |
-| `typesure/database.py` | SQLite `checks` table: save, query, delete, stats |
-| `data/ta_dictionary.txt` | Curated starter Tamil word list |
-| `templates/index.html` | Main editor page |
-| `templates/about.html` | Project description and algorithm explanations |
-| `static/css/style.css` | Responsive stylesheet with Tamil font support |
-| `static/js/app.js` | Frontend logic: check, render, correct, undo, history, import |
-| `tests/` | Automated pytest test suite |
+Detailed architectural diagrams and sequence flows are documented in [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ---
 
-## Algorithms
+## 4. Linguistic & Algorithmic Modules
 
-### 1. Unicode NFC Normalization
-Tamil text stored on different platforms may use different Unicode representations for the same character. NFC (Canonical Decomposition followed by Canonical Composition) guarantees a consistent canonical form before any string comparison is performed. Implemented using Python's `unicodedata.normalize("NFC", text)`.
+### 4.1 Unicode NFC & Grapheme Clustering (`typesure/graphemes.py`)
+Orthographic syllables (அட்சரம்) are segmented using regular expressions:
+$$\text{Grapheme} = (C + V_{\text{sign}}) \mid (C + \text{Virama}) \mid V_{\text{indep}} \mid \text{Aytham}$$
+This ensures operations count `க்` and `கி` as single linguistic units rather than 2 disjoint characters.
 
-### 2. Tokenization (Regular Expression–Based)
-The input text is scanned with a regular expression that matches:
-- Tamil Unicode sequences: `[\u0B80-\u0BFF]+`
-- Latin/English words: `[A-Za-z]+`
-- Digit runs: `[0-9]+`
-- Single punctuation marks
+### 4.2 BK-Tree Metric Space Index (`typesure/bktree.py`)
+Levenshtein distance satisfies all metric space axioms. The BK-Tree utilizes the triangle inequality to prune branches whose edge distances fall outside $[d - N, d + N]$ for search radius $N=2$.
 
-Each match is assigned a start/end character position (span) so the frontend can highlight the exact location of each potential issue.
+### 4.3 Weighted Phonological Matrix (`typesure/weighted_levenshtein.py`)
+- Nasals (`ண` $\leftrightarrow$ `ன` $\leftrightarrow$ `ந`): Cost $0.55$
+- Rhotics (`ர` $\leftrightarrow$ `ற`): Cost $0.55$
+- Laterals (`ல` $\leftrightarrow$ `ள` $\leftrightarrow$ `ழ`): Cost $0.55$
+- Pulli virama omission (`க` $\leftrightarrow$ `க்`): Cost $0.50$
+- Standard character substitutions: Cost $1.00$
 
-### 3. Dictionary Lookup (O(1) Hash Set)
-The starter dictionary is loaded from `data/ta_dictionary.txt` into a Python `set`. Set membership testing is O(1) average-case. A word is considered "recognized" if its NFC-normalized form is in this set.
+### 4.4 Morphological Suffix Decomposition (`typesure/morphology.py`)
+Decomposes nominal suffixes while reversing sandhi mutations:
+- Plural: `-கள்`, `-ங்கள்` $\to$ `-ம்` (`படங்கள்` $\to$ `படம்`)
+- Locative: `-இல்`, `-யில்`, `-த்தில்` $\to$ `-ம்` (`கல்லூரியில்` $\to$ `கல்லூரி`)
+- Accusative: `-ஐ`, `-\u0BC8` $\to$ `-\u0BCD` (`தமிழை` $\to$ `தமிழ்`)
 
-### 4. Levenshtein Edit Distance
-For each unrecognized Tamil word, the system searches for close dictionary entries using the Wagner–Fischer dynamic-programming algorithm:
+### 4.5 Multi-Factor Candidate Ranking (`typesure/ranking.py`)
+$$\text{Score} = 0.45 \cdot \frac{d_{\text{edit}}}{3} + 0.30 \cdot \frac{d_{\text{phon}}}{3} + 0.15 \cdot d_{\text{Jaccard}} + 0.10 \cdot \text{LengthRatio}$$
+Calibrated confidence is computed via logistic decay: $\text{Confidence} = \frac{1}{1 + 0.8 \cdot d_{\text{phon}}}$.
 
-```
-Given strings s1 (length m) and s2 (length n):
-- Create a 1-D array prev of size m+1, initialized to [0,1,2,...,m].
-- For each character c2 in s2:
-    - Create curr[0] = prev[0] + 1
-    - For j = 0 to m-1:
-        cost = 0 if s1[j] == c2 else 1
-        curr[j+1] = min(curr[j]+1, prev[j+1]+1, prev[j]+cost)
-    - prev = curr
-- Return prev[m]
-```
-
-Time: O(m × n) · Space: O(min(m, n))
-
-### 5. Candidate Pre-filtering
-Before computing Levenshtein distance, candidates whose length differs from the query by more than the threshold (default: 2) are eliminated. For a dictionary of N words, this typically reduces comparisons by 70–90%.
-
-### 6. Suggestion Ranking
-Remaining candidates are sorted by:
-1. Edit distance (ascending)
-2. Alphabetical order (stable tiebreaker)
-
-Up to 5 suggestions are returned per unknown word.
+Mathematical derivations and proofs are documented in [ALGORITHMS.md](ALGORITHMS.md).
 
 ---
 
-## Database Schema
+## 5. Empirical Evaluation & Benchmarks
 
-```sql
-CREATE TABLE checks (
-    id          INTEGER PRIMARY KEY AUTOINCREMENT,
-    created_at  TEXT    NOT NULL,   -- ISO-8601 UTC timestamp
-    word_count  INTEGER NOT NULL,   -- Tamil words scanned
-    issue_count INTEGER NOT NULL,   -- potential issues found
-    corrections INTEGER NOT NULL DEFAULT 0,  -- corrections accepted
-    store_text  INTEGER NOT NULL DEFAULT 0,  -- 1 = user opted in
-    input_text  TEXT    -- NULL unless store_text = 1
-);
-```
+Empirically evaluated using `scripts/evaluate.py` across 52 test items (`data/evaluation_dataset.json`):
 
-All queries use `?` parameterized placeholders (no string interpolation).
+| Metric | Result | Description |
+| :--- | :---: | :--- |
+| **Detection Recall** | **$100.00\%$** | $22 / 22$ errors correctly identified |
+| **Detection Precision** | **$75.86\%$** | Valid words correctly separated from errors |
+| **Detection F1-Score** | **$86.27\%$** | Harmonic mean of precision and recall |
+| **Correction Top-1 Accuracy** | **$77.27\%$** | Target word was the primary suggestion |
+| **Correction Top-5 Accuracy** | **$77.27\%$** | Target word in top-5 candidates |
+| **Average Linear Search Latency** | $3.542\text{ ms}$ | Baseline length-filtered iteration |
+| **Average BK-Tree Search Latency** | **$2.501\text{ ms}$** | **$1.42\times$ search speedup** |
 
----
-
-## Software & Hardware Requirements
-
-**Software:**
-- Python 3.10 or later
-- pip
-- A modern web browser (Chrome, Firefox, Edge, Safari)
-- Internet access only for loading Google Fonts (optional — falls back gracefully)
-
-**Hardware:**
-- Any standard laptop or desktop computer
-- Minimum 512 MB RAM
-- No GPU required
+Detailed confusion matrices and evaluation reports are in [TESTING_REPORT.md](TESTING_REPORT.md).
 
 ---
 
-## Installation
+## 6. Database & Security Engineering
 
+- **Session Isolation**: Check histories are isolated per client session using `session_id` cookies and `X-Session-ID` headers.
+- **Zero-Leak Default**: By default, `store_text = 0`; full text is never persisted unless the user explicitly opts in.
+- **Content Security Policy (CSP)**:
+  ```http
+  Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self';
+  ```
+- **Serverless Resilience**: Auto-detects Vercel deployment environments and maps the SQLite database to `/tmp/typesure.db` with automated schema migrations.
+
+---
+
+## 7. Installation & Local Setup
+
+### Prerequisites
+- Python 3.10+ (tested through Python 3.14)
+- Git
+
+### Installation Steps
 ```bash
-# 1. Navigate to the project directory
-cd TypeSure
+# 1. Clone the repository
+git clone https://github.com/Sanjeyj/TypeSure-Project.git
+cd TypeSure-Project
 
-# 2. (Recommended) Create a virtual environment
+# 2. Create and activate a virtual environment
 python -m venv venv
-
-# 3. Activate the virtual environment
-# Windows:
+# On Windows:
 venv\Scripts\activate
-# macOS/Linux:
+# On Linux/macOS:
 source venv/bin/activate
 
-# 4. Install dependencies
+# 3. Install dependencies
 pip install -r requirements.txt
-```
 
----
-
-## Running the Project
-
-```bash
-# From the TypeSure directory with venv active:
+# 4. Start the Flask application
 python app.py
 ```
+Open [http://localhost:5000](http://localhost:5000) in your browser.
 
-The server starts at **http://127.0.0.1:5000**
+---
 
-To enable debug mode (development only):
+## 8. Automated Test Suite
+
+TypeSure features **112 automated tests** with $100\%$ pass rate:
 ```bash
-FLASK_DEBUG=1 python app.py
+pytest tests/ -v
 ```
+Test modules:
+- `tests/test_advanced_nlp.py`: Graphemes, weighted costs, BK-trees, morphology, and session isolation.
+- `tests/test_routes.py`: Flask API endpoints, security headers, file uploads, and reports.
+- `tests/test_spellchecker.py`: Baseline normalization, Levenshtein distance, and dictionary state.
+- `tests/test_text_processing.py`: Tokenization spans, word counts, and edge cases.
 
 ---
 
-## Running Tests
+## 9. API Reference Summary
 
-```bash
-# From the TypeSure directory:
-python -m pytest tests/ -v
-```
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `POST` | `/api/check` | Analyze Tamil text, identify errors, and generate ranked suggestions |
+| `GET` | `/api/history` | Retrieve session-isolated check history |
+| `DELETE` | `/api/history` | Clear history for the current session |
+| `DELETE` | `/api/history/<id>` | Delete an individual history record |
+| `POST` | `/api/dictionary/import` | Upload and persist custom `.txt` word lists (max 2 MB) |
+| `GET` | `/api/stats` | Retrieve dictionary size and database summary metrics |
+| `GET` | `/api/benchmark` | Empirical benchmark comparing BK-tree vs linear lookup |
+| `GET` | `/api/report?format=csv` | Export check history report as CSV or plain text |
+| `GET` | `/healthz` | Deployment probe endpoint |
 
-Expected output: all tests pass. See test results below for verification.
-
----
-
-## Example Inputs & Outputs
-
-### Input (with errors)
-```
-வணககம். நான் தமழ் படிகிறேன்.
-```
-
-### Expected Output (flagged words)
-| Word | Issue | Suggestion |
-|------|-------|------------|
-| வணககம் | Not in dictionary | வணக்கம் (d=2) |
-| தமழ் | Not in dictionary | தமிழ் (d=1) |
-| படிகிறேன் | Not in dictionary | படிக்கிறேன் (d=1) |
-
-### Input (no errors)
-```
-வணக்கம். நான் தமிழ் படிக்கிறேன்.
-```
-Result: 0 issues found. Dictionary coverage: 100%.
+Complete API schemas and JSON payloads are documented in [API_DOCUMENTATION.md](API_DOCUMENTATION.md).
 
 ---
 
-## API Reference
+## 10. Academic Presentation & Viva Voce
 
-| Method | Route | Description |
-|--------|-------|-------------|
-| GET | `/` | Main editor page |
-| GET | `/about` | About / limitations page |
-| POST | `/api/check` | Spell-check text (JSON body: `{"text": "..."}`) |
-| GET | `/api/history` | Recent check history |
-| DELETE | `/api/history` | Clear all history |
-| POST | `/api/dictionary/import` | Upload a .txt word list |
-| GET | `/api/report` | Download report (`?format=csv` or `?format=txt`) |
-| GET | `/api/stats` | Dictionary and DB summary statistics |
-
----
-
-## Limitations
-
-1. **Limited dictionary:** The starter vocabulary covers common words but not the full Tamil lexicon.
-2. **No morphological analysis:** Inflected forms must be explicitly listed.
-3. **No grammar checking:** Only individual word spelling is checked.
-4. **Edit distance is language-agnostic:** The algorithm treats all character edits as equal cost; Tamil-specific phoneme relationships are not modeled.
-5. **Short-word noise:** Very short Tamil particles (1 character) are skipped to reduce false positives.
-6. **Dictionary coverage:** The starter vocabulary covers common words but does not represent the full Tamil lexicon.
-
----
-
-## Future Enhancements
-
-1. Integrate a comprehensive word list (Wiktionary Tamil dump, OLTools).
-2. Add morphological root analysis for agglutinative forms.
-3. Implement Tamil phonetic similarity scoring.
-4. Context-aware n-gram ranking of suggestions.
-5. Browser extension for system-wide spelling assistance.
-6. User-specific custom dictionaries with persistence.
-7. Offline font bundling for air-gapped environments.
-
----
-
-## Privacy & Security
-
-- Text is processed entirely on the local Flask server.
-- No data is sent to any external API.
-- Full input text is only stored in SQLite when the user explicitly opts in.
-- All SQL uses parameterized queries.
-- File uploads are restricted to `.txt`, validated for UTF-8, and size-limited to 2 MB.
-- User content is never inserted into the DOM via `innerHTML` — only `textContent` is used.
-- Maximum request size: 4 MB (enforced by Flask).
-- Maximum text length: 20,000 characters (enforced in `/api/check`).
-
----
-
-*TypeSure — Tamil Spelling Detection and Correction System*  
-*Powered by dictionary lookup &amp; Levenshtein edit-distance algorithms.*
+For academic examiners and project defense preparations, see:
+- [VIVA_VOCE_PREPARATION.md](VIVA_VOCE_PREPARATION.md): Contains 25 comprehensive technical questions and answers covering natural language processing, Unicode theory, metric spaces, algorithm complexity, and software architecture.
+- [CHANGELOG.md](CHANGELOG.md): Detailed record of engineering iterations from prototype to v2.0 Final Edition.

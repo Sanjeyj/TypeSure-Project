@@ -1,0 +1,53 @@
+split,category,input,expected,type,issues_found,top_suggestions,latency_ms
+development,clean_word,வணக்கம்,வணக்கம்,correct,0,,0.17
+development,missing_pulli,வணககம்,வணக்கம்,error,1,வணக்கம்,0.27
+development,missing_vowel_sign,தமழ்,தமிழ்,error,1,தமிழ் | மழை | மண் | தோள் | தான்,2.85
+development,missing_pulli,படிகிறேன்,படிக்கிறேன்,error,1,படிக்கிறேன் | ஓடுகிறேன் | போகிறேன்,3.76
+development,missing_consonant,சாபிடு,சாப்பிடு,error,1,சாப்பிடு,3.44
+development,nasal_orthography,மணம்,மணம்,correct,1,பணம் | மரம் | மறம் | மண் | நாம்,2.81
+development,nasal_orthography,மனம்,மனம்,correct,1,மரம் | மறம் | வானம் | பணம் | நாம்,2.39
+development,retroflex_approximant,பழம்,பழம்,correct,0,,0.05
+development,lateral_confusion,பளம்,பழம்,error,1,பழம் | பணம் | பயம் | நாம் | பல்,3.01
+development,locative_inflection,கல்லூரியில்,கல்லூரியில்,correct,0,,0.08
+development,plural_inflection,மாணவர்கள்,மாணவர்கள்,correct,1,,9.2
+development,accusative_inflection,தமிழை,தமிழை,correct,0,,0.07
+development,plural_inflection,புத்தகங்கள்,புத்தகங்கள்,correct,0,,0.06
+development,locative_inflection,வீட்டில்,வீட்டில்,correct,0,,0.07
+development,locative_inflection,வழியில்,வழியில்,correct,1,வெயில்,2.95
+development,clean_word,நன்றி,நன்றி,correct,0,,0.05
+development,missing_pulli,நனறி,நன்றி,error,1,நன்றி | நூறு | பனி,1.7
+development,clean_word,அம்மா,அம்மா,correct,0,,0.05
+development,missing_consonant,அமா,அம்மா,error,1,அம்மா | அதோ | மாமா | ஆம் | தா,2.45
+development,clean_word,அப்பா,அப்பா,correct,0,,0.17
+development,missing_consonant,அபா,அப்பா,error,1,அப்பா | அதோ | பூ | போ | தா,2.1
+validation,clean_word,அழகான,அழகான,correct,0,,0.06
+validation,lateral_confusion,அலகான,அழகான,error,1,அழகான,3.15
+validation,clean_word,மரம்,மரம்,correct,0,,0.04
+validation,rhotic_orthography,மறம்,மறம்,correct,0,,0.05
+validation,clean_word,வீரம்,வீரம்,correct,0,,0.05
+validation,vowel_sign_confusion,விீரம்,வீரம்,error,1,வீரம் | வாரம் | விரல்,2.44
+validation,clean_word,சூரியன்,சூரியன்,correct,0,,0.05
+validation,short_long_vowel,சுரியன்,சூரியன்,error,1,சூரியன்,3.07
+validation,clean_word,நிலா,நிலா,correct,0,,0.05
+validation,extra_consonant,நில்லா,நிலா,error,1,நிலா | நல்ல,3.63
+validation,clean_word,ஆசிரியர்,ஆசிரியர்,correct,0,,0.05
+validation,missing_vowel_sign,ஆசிரயர்,ஆசிரியர்,error,1,ஆசிரியர்,4.32
+validation,compound_word,மருத்துவமனை,மருத்துவமனை,correct,0,,0.05
+validation,missing_pulli,மருதுவமனை,மருத்துவமனை,error,1,மருத்துவமனை,2.36
+validation,clean_word,நண்பன்,நண்பன்,correct,0,,0.05
+validation,nasal_confusion,நன்பன்,நண்பன்,error,1,நண்பன்,3.59
+validation,clean_word,அறிவியல்,அறிவியல்,correct,0,,0.05
+validation,rhotic_confusion,அரிவியல்,அறிவியல்,error,1,அறிவியல்,3.53
+validation,clean_word,புத்தகம்,புத்தகம்,correct,0,,0.05
+validation,missing_pulli,புததகம்,புத்தகம்,error,1,புத்தகம்,2.33
+test,full_sentence,வணக்கம். நான் தமிழ் படிக்கிறேன்.,வணக்கம். நான் தமிழ் படிக்கிறேன்.,sentence_correct,0,,0.08
+test,full_sentence_errors,வணககம். நான் தமழ் படிகிறேன்.,வணக்கம். நான் தமிழ் படிக்கிறேன்.,sentence_error,3,வணக்கம்,6.51
+test,code_switching,Good morning. வணக்கம். கல்லூரிக்கு செல்கிறேன்.,Good morning. வணக்கம். கல்லூரிக்கு செல்கிறேன்.,mixed_correct,1,சொல்கிறேன் | செய்கிறேன் | செய்கிறான்,3.38
+test,code_switching_errors,Good morning. வணககம். கலலூரிக்கு செல்கிறேன்.,Good morning. வணக்கம். கல்லூரிக்கு செல்கிறேன்.,mixed_error,3,வணக்கம்,11.77
+test,inflected_sentence,தமிழை நேசிப்போம்.,தமிழை நேசிப்போம்.,sentence_correct,0,,0.06
+test,inflected_sentence,மாணவர்கள் வகுப்பறையில் இருக்கிறார்கள்.,மாணவர்கள் வகுப்பறையில் இருக்கிறார்கள்.,sentence_correct,1,,7.55
+test,inflection_typo,மாணவர்கல் வகுப்பறையில் இருக்கிறார்கள்.,மாணவர்கள் வகுப்பறையில் இருக்கிறார்கள்.,sentence_error,1,,7.69
+test,full_sentence,நேற்று மாலையில் மழை பெய்தது.,நேற்று மாலையில் மழை பெய்தது.,sentence_correct,0,,0.1
+test,multiple_errors,நேறு மாலையில் மளை பெய்தது.,நேற்று மாலையில் மழை பெய்தது.,sentence_error,2,நூறு | நேற்று | சோறு | ஆறு | நாடு,5.12
+test,full_sentence,கணினி அறிவியல் மிகவும் பயனுள்ளது.,கணினி அறிவியல் மிகவும் பயனுள்ளது.,sentence_correct,1,,6.53
+test,multiple_errors,கனினி அறிவியல மிகவும் பயனுள்ளது.,கணினி அறிவியல் மிகவும் பயனுள்ளது.,sentence_error,3,கணினி,6.03

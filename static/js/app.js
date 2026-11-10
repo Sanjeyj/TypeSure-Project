@@ -533,7 +533,29 @@ if (isEditorPage) {
       }
 
       meta.append(time, stats);
-      item.append(num, meta);
+
+      const delBtn = document.createElement("button");
+      delBtn.className = "btn-icon-del";
+      delBtn.title = "Delete this check record";
+      delBtn.setAttribute("aria-label", "Delete this record");
+      delBtn.textContent = "✕";
+      delBtn.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        try {
+          const resp = await fetch(`/api/history/${r.id}`, { method: "DELETE" });
+          if (resp.ok) {
+            item.remove();
+            showToast("Record deleted.", "info", 2000);
+            if (el.historyList.querySelectorAll(".history-item").length === 0) {
+              loadHistory();
+            }
+          }
+        } catch {
+          showError("Could not delete record.");
+        }
+      });
+
+      item.append(num, meta, delBtn);
       el.historyList.appendChild(item);
     });
   }

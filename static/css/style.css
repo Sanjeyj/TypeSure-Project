@@ -1100,6 +1100,22 @@ ul, ol { list-style: none; }
   font-weight: 600;
 }
 
+.btn-icon-del {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  border-radius: var(--radius-sm);
+  transition: all var(--duration) var(--ease);
+  line-height: 1;
+}
+.btn-icon-del:hover {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+
 /* --------------------------------------------------------------------------
    18. Algorithm & Info Sections
    -------------------------------------------------------------------------- */
