@@ -141,3 +141,4 @@ erDiagram
 1. **Client Isolation**: Client requests identify via the `X-Session-ID` header or `typesure_session` cookie. SQL queries enforce `WHERE session_id = ?` boundaries so individual histories remain isolated across distinct browser sessions.
 2. **Zero Text Leaks**: By default, `store_text = 0` and the input text is never saved to disk. Only aggregate token counts are committed unless the user explicitly toggles the opt-in checkbox.
 3. **Content Security Policy (CSP)**: Outbound responses enforce `default-src 'self'`, restricting script execution to origin-hosted scripts and preventing remote script injection.
+

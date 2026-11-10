@@ -110,3 +110,4 @@ def rank_candidates(
             break
 
     return unique_ranked
+

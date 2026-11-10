@@ -137,3 +137,4 @@ $$d_{\text{Jaccard}}(q, c) = 1.0 - \frac{|G(q) \cap G(c)|}{|G(q) \cup G(c)|}$$
 A calibrated confidence measure (between $0.10$ and $1.00$) is derived via logistic decay over the phonological weighted distance:
 $$\text{Confidence}(q, c) = \max\left(0.10, \; \text{round}\left(\frac{1}{1 + 0.8 \cdot d_{\text{phon}}(q, c)}, \; 2\right)\right)$$
 This gives transparent, mathematically bounded confidence values without fabricating percentages.
+

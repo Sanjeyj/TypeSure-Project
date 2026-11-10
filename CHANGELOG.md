@@ -59,3 +59,4 @@ All notable changes to the **TypeSure** project are documented in this file.
 - SQLite check history storage.
 - File upload for dictionary word lists.
 - 94 baseline pytest unit tests.
+

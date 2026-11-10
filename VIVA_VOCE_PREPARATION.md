@@ -144,3 +144,4 @@ This yields a bounded value between $0.10$ and $1.00$ that decreases monotonical
 2. Context-aware n-gram language modeling for phonetic homophone disambiguation.
 3. Integration of deep-learning sequence-to-sequence models (e.g., IndicBART) for sentence-level grammar correction.
 4. Packaging as a cross-platform browser extension.
+

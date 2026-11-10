@@ -71,3 +71,4 @@ def get_base_consonant(grapheme: str) -> str:
     if len(grapheme) >= 1 and '\u0B95' <= grapheme[0] <= '\u0BB9':
         return grapheme[0]
     return grapheme
+
