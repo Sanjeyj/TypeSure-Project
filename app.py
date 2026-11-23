@@ -64,6 +64,12 @@ from typesure.database import (
     get_user_by_id,
     update_user_profile,
     update_user_password,
+    add_personal_word,
+    get_personal_words,
+    count_personal_words,
+    update_personal_word,
+    delete_personal_word,
+    import_personal_words,
 )
 from typesure.auth import (
     hash_password,
@@ -227,12 +233,14 @@ def dashboard():
     summary = get_summary_stats(user_id=user["id"])
     recent_checks = get_history(limit=10, user_id=user["id"])
     dict_stats = tamil_dict.stats()
+    personal_count = count_personal_words(user["id"])
     return render_template(
         "dashboard.html",
         user=user,
         summary=summary,
         recent_checks=recent_checks,
         dict_stats=dict_stats,
+        personal_count=personal_count,
     )
 
 
@@ -455,7 +463,7 @@ def api_check():
     session_id = _get_session_id()
     user_id = session.get("user_id")
 
-    result = check_text(text, search_method=search_method)
+    result = check_text(text, search_method=search_method, user_id=user_id)
 
     # Persist to history with user and session isolation
     check_id = save_check(
@@ -540,6 +548,182 @@ def api_import_dictionary():
 
     result = tamil_dict.import_wordlist(content)
     return jsonify(result)
+
+
+# ─── API: Personal Dictionary (User-Isolated) ─────────────────────────────────
+
+@app.route("/api/personal-dictionary", methods=["GET"])
+@login_required
+def api_get_personal_dictionary():
+    """
+    GET /api/personal-dictionary?q=...&page=1&limit=50
+    Retrieve paginated personal dictionary words for the authenticated user.
+    """
+    user = get_current_user()
+    query = request.args.get("q", "").strip() or None
+    page = request.args.get("page", 1, type=int)
+    limit = request.args.get("limit", 50, type=int)
+    limit = max(1, min(limit, 200))
+    offset = max(0, (page - 1) * limit)
+
+    total = count_personal_words(user["id"], query=query)
+    words = get_personal_words(user["id"], query=query, limit=limit, offset=offset)
+
+    return jsonify({
+        "success": True,
+        "words": words,
+        "total": total,
+        "page": page,
+        "limit": limit,
+        "total_pages": max(1, (total + limit - 1) // limit),
+    })
+
+
+@app.route("/api/personal-dictionary", methods=["POST"])
+@login_required
+def api_add_personal_word():
+    """
+    POST /api/personal-dictionary
+    Body: { "word": "...", "notes": "..." }
+    Add a new verified word to user's personal dictionary.
+    """
+    user = get_current_user()
+    data = _require_json()
+    word = (data.get("word") or "").strip()
+    notes = (data.get("notes") or "").strip()
+
+    if not word:
+        return _json_error("Word cannot be empty.", 400)
+    if len(word) > 80:
+        return _json_error("Word cannot exceed 80 characters.", 400)
+
+    word_id = add_personal_word(user["id"], word, notes=notes)
+    if word_id is None:
+        return _json_error(f"'{word}' is already in your personal dictionary.", 409)
+
+    return jsonify({
+        "success": True,
+        "message": f"'{word}' added to your personal dictionary.",
+        "word": {
+            "id": word_id,
+            "user_id": user["id"],
+            "word": word,
+            "notes": notes,
+        },
+    }), 201
+
+
+@app.route("/api/personal-dictionary/<int:word_id>", methods=["PUT"])
+@login_required
+def api_update_personal_word(word_id: int):
+    """
+    PUT /api/personal-dictionary/<id>
+    Body: { "notes": "..." }
+    Update notes on an existing personal dictionary entry.
+    """
+    user = get_current_user()
+    data = _require_json()
+    notes = data.get("notes", "")
+
+    updated = update_personal_word(word_id, user["id"], notes)
+    if not updated:
+        return _json_error("Word entry not found or unauthorized.", 404)
+
+    return jsonify({"success": True, "message": "Word updated successfully."})
+
+
+@app.route("/api/personal-dictionary/<int:word_id>", methods=["DELETE"])
+@login_required
+def api_delete_personal_word(word_id: int):
+    """
+    DELETE /api/personal-dictionary/<id>
+    Delete a word from the user's personal dictionary.
+    """
+    user = get_current_user()
+    deleted = delete_personal_word(word_id, user["id"])
+    if not deleted:
+        return _json_error("Word entry not found or unauthorized.", 404)
+
+    return jsonify({"success": True, "message": "Word removed from personal dictionary."})
+
+
+@app.route("/api/personal-dictionary/import", methods=["POST"])
+@login_required
+def api_import_personal_dictionary():
+    """
+    POST /api/personal-dictionary/import
+    Import text file (UTF-8, one word per line) or JSON list into personal dictionary.
+    """
+    user = get_current_user()
+    words_to_add = []
+
+    if "file" in request.files:
+        f = request.files["file"]
+        if not f.filename.lower().endswith(".txt"):
+            return _json_error("Only .txt files are accepted for import.", 415)
+        raw = f.read(MAX_IMPORT_SIZE_BYTES + 1)
+        if len(raw) > MAX_IMPORT_SIZE_BYTES:
+            return _json_error("File exceeds maximum allowed size (2MB).", 413)
+        try:
+            content = raw.decode("utf-8")
+        except UnicodeDecodeError:
+            return _json_error("File is not valid UTF-8 text.", 422)
+        words_to_add = [line.strip() for line in content.splitlines() if line.strip() and not line.strip().startswith("#")]
+    elif request.is_json:
+        data = request.get_json(silent=True) or {}
+        words_to_add = [str(w).strip() for w in data.get("words", []) if str(w).strip()]
+    else:
+        return _json_error("Please upload a .txt file or provide a JSON words list.", 400)
+
+    if not words_to_add:
+        return _json_error("No valid words found to import.", 400)
+
+    added, duplicates = import_personal_words(user["id"], words_to_add)
+    return jsonify({
+        "success": True,
+        "added": added,
+        "duplicates": duplicates,
+        "total_processed": len(words_to_add),
+    })
+
+
+@app.route("/api/personal-dictionary/export", methods=["GET"])
+@login_required
+def api_export_personal_dictionary():
+    """
+    GET /api/personal-dictionary/export?format=txt|csv
+    Export user's personal dictionary.
+    """
+    user = get_current_user()
+    fmt = request.args.get("format", "txt").lower()
+    if fmt not in ("txt", "csv"):
+        return _json_error("'format' must be 'txt' or 'csv'.")
+
+    words = get_personal_words(user["id"], limit=10000)
+    now_str = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+
+    if fmt == "csv":
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(["ID", "Word", "Notes", "Created At"])
+        for w in words:
+            writer.writerow([w["id"], w["word"], w.get("notes") or "", w["created_at"]])
+        content = output.getvalue()
+        mime = "text/csv"
+        filename = f"typesure_personal_dictionary_{now_str}.csv"
+    else:
+        content = "\n".join(w["word"] for w in words)
+        mime = "text/plain; charset=utf-8"
+        filename = f"typesure_personal_dictionary_{now_str}.txt"
+
+    return Response(
+        content,
+        mimetype=mime,
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "X-Content-Type-Options": "nosniff",
+        },
+    )
 
 
 # ─── API: Report Export ──────────────────────────────────────────────────────

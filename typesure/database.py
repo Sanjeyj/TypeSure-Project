@@ -85,6 +85,16 @@ CREATE TABLE IF NOT EXISTS custom_words (
     word        TEXT UNIQUE NOT NULL,
     created_at  TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS personal_words (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id     INTEGER NOT NULL,
+    word        TEXT NOT NULL,
+    notes       TEXT,
+    created_at  TEXT NOT NULL,
+    UNIQUE(user_id, word),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
 """
 
 
@@ -119,6 +129,8 @@ def init_db():
         conn.execute("CREATE INDEX IF NOT EXISTS idx_checks_session_id ON checks(session_id, id DESC);")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_custom_words_word ON custom_words(word);")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_personal_words_user ON personal_words(user_id, id DESC);")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_personal_words_word ON personal_words(word);")
         conn.commit()
 
 
@@ -390,3 +402,164 @@ def load_persisted_custom_words() -> List[str]:
             return [r["word"] for r in rows]
     except sqlite3.OperationalError:
         return []
+
+
+# ─── Personal Dictionary Operations (User-Isolated) ───────────────────────────
+
+def add_personal_word(user_id: int, word: str, notes: Optional[str] = None) -> Optional[int]:
+    """
+    Add a verified word to a specific user's personal dictionary.
+    Returns the word record ID, or None if the word already exists for this user.
+    """
+    clean_word = unicodedata_nfc(word)
+    if not clean_word:
+        return None
+    now = datetime.now(timezone.utc).isoformat()
+    with _get_connection() as conn:
+        try:
+            cur = conn.execute(
+                """
+                INSERT INTO personal_words (user_id, word, notes, created_at)
+                VALUES (?, ?, ?, ?)
+                """,
+                (user_id, clean_word, notes.strip() if notes else None, now),
+            )
+            conn.commit()
+            return cur.lastrowid
+        except sqlite3.IntegrityError:
+            return None
+
+
+def get_personal_words(
+    user_id: int,
+    query: Optional[str] = None,
+    limit: int = 50,
+    offset: int = 0,
+) -> List[Dict]:
+    """Retrieve paginated personal dictionary words for a user, with optional search query."""
+    limit = max(1, min(limit, 500))
+    offset = max(0, offset)
+    with _get_connection() as conn:
+        if query:
+            clean_q = f"%{query.strip()}%"
+            rows = conn.execute(
+                """
+                SELECT id, user_id, word, notes, created_at
+                FROM personal_words
+                WHERE user_id = ? AND (word LIKE ? OR notes LIKE ?)
+                ORDER BY id DESC
+                LIMIT ? OFFSET ?
+                """,
+                (user_id, clean_q, clean_q, limit, offset),
+            ).fetchall()
+        else:
+            rows = conn.execute(
+                """
+                SELECT id, user_id, word, notes, created_at
+                FROM personal_words
+                WHERE user_id = ?
+                ORDER BY id DESC
+                LIMIT ? OFFSET ?
+                """,
+                (user_id, limit, offset),
+            ).fetchall()
+        return [dict(r) for r in rows]
+
+
+def count_personal_words(user_id: int, query: Optional[str] = None) -> int:
+    """Return total count of personal dictionary words for a user, optionally filtered."""
+    with _get_connection() as conn:
+        if query:
+            clean_q = f"%{query.strip()}%"
+            row = conn.execute(
+                """
+                SELECT COUNT(*) AS total
+                FROM personal_words
+                WHERE user_id = ? AND (word LIKE ? OR notes LIKE ?)
+                """,
+                (user_id, clean_q, clean_q),
+            ).fetchone()
+        else:
+            row = conn.execute(
+                "SELECT COUNT(*) AS total FROM personal_words WHERE user_id = ?",
+                (user_id,),
+            ).fetchone()
+        return row["total"] if row else 0
+
+
+def update_personal_word(word_id: int, user_id: int, notes: str) -> bool:
+    """Update notes for a specific personal dictionary word, enforcing user isolation."""
+    with _get_connection() as conn:
+        cur = conn.execute(
+            """
+            UPDATE personal_words
+            SET notes = ?
+            WHERE id = ? AND user_id = ?
+            """,
+            (notes.strip() if notes else None, word_id, user_id),
+        )
+        conn.commit()
+        return cur.rowcount > 0
+
+
+def delete_personal_word(word_id: int, user_id: int) -> bool:
+    """Delete a personal dictionary word by ID, enforcing user isolation."""
+    with _get_connection() as conn:
+        cur = conn.execute(
+            "DELETE FROM personal_words WHERE id = ? AND user_id = ?",
+            (word_id, user_id),
+        )
+        conn.commit()
+        return cur.rowcount > 0
+
+
+def get_personal_word_set(user_id: int) -> set:
+    """Return a fast in-memory Set of all words in a user's personal dictionary."""
+    if not user_id:
+        return set()
+    try:
+        with _get_connection() as conn:
+            rows = conn.execute(
+                "SELECT word FROM personal_words WHERE user_id = ?",
+                (user_id,),
+            ).fetchall()
+            return {r["word"] for r in rows}
+    except sqlite3.OperationalError:
+        return set()
+
+
+def import_personal_words(user_id: int, words: List[str]) -> Tuple[int, int]:
+    """
+    Bulk import multiple words into a user's personal dictionary.
+    Returns (added_count, duplicate_count).
+    """
+    now = datetime.now(timezone.utc).isoformat()
+    added = 0
+    duplicates = 0
+    with _get_connection() as conn:
+        for raw in words:
+            word = unicodedata_nfc(raw)
+            if not word:
+                continue
+            try:
+                conn.execute(
+                    """
+                    INSERT INTO personal_words (user_id, word, notes, created_at)
+                    VALUES (?, ?, ?, ?)
+                    """,
+                    (user_id, word, "Bulk imported", now),
+                )
+                added += 1
+            except sqlite3.IntegrityError:
+                duplicates += 1
+            except sqlite3.Error:
+                pass
+        conn.commit()
+    return added, duplicates
+
+
+def unicodedata_nfc(text: str) -> str:
+    """Helper to ensure NFC normalization on stored words."""
+    import unicodedata
+    return unicodedata.normalize("NFC", text.strip())
+

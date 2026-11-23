@@ -319,9 +319,13 @@ if (isEditorPage) {
       const top = document.createElement("div");
       top.className = "issue-top";
 
+      const isUnknown = issue.classification === "UNKNOWN_WORD";
       const badge = document.createElement("span");
-      badge.className = "issue-badge";
-      badge.textContent = "⚠ Possible Issue";
+      badge.className = isUnknown ? "issue-badge issue-badge--unknown" : "issue-badge";
+      badge.style.background = isUnknown ? "rgba(216, 184, 117, 0.2)" : "";
+      badge.style.color = isUnknown ? "#8A6D27" : "";
+      badge.style.borderColor = isUnknown ? "rgba(216, 184, 117, 0.4)" : "";
+      badge.textContent = isUnknown ? "🔍 Unrecognized Word" : "⚠ Possible Spelling Error";
 
       const wordEl = document.createElement("span");
       wordEl.className = "issue-word";
@@ -331,7 +335,50 @@ if (isEditorPage) {
       occEl.className = "issue-occ";
       occEl.textContent = `(${issue.occurrences} occurrence${issue.occurrences > 1 ? "s" : ""})`;
 
-      top.append(badge, wordEl, occEl);
+      // 1-Click "+ Add to Personal Dictionary" button
+      const addDictBtn = document.createElement("button");
+      addDictBtn.type = "button";
+      addDictBtn.className = "btn btn-ghost btn-sm";
+      addDictBtn.style.fontSize = "0.78rem";
+      addDictBtn.style.padding = "2px 8px";
+      addDictBtn.style.marginLeft = "auto";
+      addDictBtn.style.color = "var(--color-primary)";
+      addDictBtn.style.border = "1px solid var(--color-border-light)";
+      addDictBtn.textContent = "+ Add to Personal Dict";
+      addDictBtn.title = `Add '${issue.word}' to your personal dictionary so it won't be flagged`;
+      addDictBtn.addEventListener("click", async () => {
+        try {
+          addDictBtn.disabled = true;
+          addDictBtn.textContent = "Adding...";
+          const res = await fetch("/api/personal-dictionary", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ word: issue.word, notes: "Added from editor" }),
+          });
+          const d = await res.json();
+          if (res.ok && d.success) {
+            showToast(`'${issue.word}' added to your personal dictionary!`, "success");
+            badge.textContent = "✅ Saved to Dictionary";
+            badge.style.background = "rgba(40, 116, 91, 0.15)";
+            badge.style.color = "var(--color-secondary)";
+            addDictBtn.remove();
+          } else if (res.status === 401) {
+            showToast("Please log in to save words to your personal dictionary.", "error");
+            addDictBtn.disabled = false;
+            addDictBtn.textContent = "+ Add to Personal Dict";
+          } else {
+            showToast(d.error || "Could not save word.", "error");
+            addDictBtn.disabled = false;
+            addDictBtn.textContent = "+ Add to Personal Dict";
+          }
+        } catch (e) {
+          showToast("Network error.", "error");
+          addDictBtn.disabled = false;
+          addDictBtn.textContent = "+ Add to Personal Dict";
+        }
+      });
+
+      top.append(badge, wordEl, occEl, addDictBtn);
 
       const sugRow = document.createElement("div");
       sugRow.className = "suggestions-row";
@@ -339,26 +386,37 @@ if (isEditorPage) {
       if (issue.suggestions.length === 0) {
         const noSug = document.createElement("span");
         noSug.className = "no-suggestions";
-        noSug.textContent = "No close suggestions found in the current dictionary.";
+        noSug.textContent = isUnknown
+          ? "Unrecognized word – Please review spelling or add to your personal dictionary."
+          : "No close suggestions found in the current dictionary.";
         sugRow.appendChild(noSug);
       } else {
         const label = document.createElement("span");
         label.className = "suggestions-label";
-        label.textContent = "Suggestions:";
+        label.textContent = "Top Suggestions:";
         sugRow.appendChild(label);
 
-        issue.suggestions.forEach((sug) => {
+        issue.suggestions.slice(0, 3).forEach((sug) => {
           const btn = document.createElement("button");
           btn.className = "suggestion-btn";
           btn.type = "button";
-          btn.title = `Replace "${issue.word}" with "${sug.word}" (edit distance: ${sug.distance})`;
+          btn.title = sug.reason
+            ? `Replace with "${sug.word}" (${sug.reason})`
+            : `Replace with "${sug.word}" (distance: ${sug.distance})`;
 
           const wordSpan = document.createElement("span");
           wordSpan.textContent = sug.word;
 
           const distBadge = document.createElement("span");
           distBadge.className = "dist-badge";
-          distBadge.textContent = `d=${sug.distance}`;
+          distBadge.textContent = sug.reason ? sug.reason.split("(")[0].trim() : `d=${sug.distance}`;
+          if (sug.reason) {
+            distBadge.style.fontSize = "0.72rem";
+            distBadge.style.maxWidth = "200px";
+            distBadge.style.overflow = "hidden";
+            distBadge.style.textOverflow = "ellipsis";
+            distBadge.style.whiteSpace = "nowrap";
+          }
 
           btn.append(wordSpan, distBadge);
           btn.addEventListener("click", () => applyCorrection(issue.word, sug.word));
