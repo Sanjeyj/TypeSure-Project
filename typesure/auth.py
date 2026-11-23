@@ -10,6 +10,8 @@ Security:
 
 import re
 import secrets
+import time
+from collections import defaultdict
 from functools import wraps
 from typing import Optional, Dict, Tuple
 from flask import session, request, redirect, url_for, jsonify
@@ -18,6 +20,49 @@ from .database import get_user_by_id, get_user_by_email, create_user, update_use
 
 # Email regex pattern
 _EMAIL_RE = re.compile(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$')
+
+# In-memory sliding window rate limiter store
+_RATE_LIMIT_STORE = defaultdict(list)
+
+
+def clear_rate_limits():
+    """Reset rate limiter store (useful during unit test suites)."""
+    _RATE_LIMIT_STORE.clear()
+
+
+def rate_limit(max_requests: int = 15, window_seconds: int = 60):
+    """
+    In-memory rate limiter decorator for endpoint abuse prevention.
+    Returns HTTP 429 when max_requests within window_seconds is exceeded for client IP.
+    """
+    def decorator(f):
+        @wraps(f)
+        def wrapped(*args, **kwargs):
+            # In testing environment, bypass rate limits unless explicitly tested
+            from flask import current_app
+            if current_app.config.get("TESTING") and not current_app.config.get("ENABLE_RATE_LIMIT_TEST"):
+                return f(*args, **kwargs)
+
+            forwarded = request.headers.get("X-Forwarded-For")
+            client_ip = forwarded.split(",")[0].strip() if forwarded else (request.remote_addr or "127.0.0.1")
+            endpoint_key = f"{f.__name__}:{client_ip}"
+            now = time.time()
+
+            # Filter timestamps within current window
+            active = [t for t in _RATE_LIMIT_STORE[endpoint_key] if now - t < window_seconds]
+            _RATE_LIMIT_STORE[endpoint_key] = active
+
+            if len(active) >= max_requests:
+                retry_after = max(1, int(window_seconds - (now - active[0])))
+                return jsonify({
+                    "error": "Too many requests. Please wait a moment and try again.",
+                    "retry_after": retry_after
+                }), 429
+
+            _RATE_LIMIT_STORE[endpoint_key].append(now)
+            return f(*args, **kwargs)
+        return wrapped
+    return decorator
 
 
 def hash_password(password: str) -> str:

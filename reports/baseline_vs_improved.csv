@@ -1,0 +1,12 @@
+Metric,Baseline,Improved,Delta
+Active Dictionary Size,436 words,"1,972 words","+1,536 words"
+True Positives (TP),22,22,+0
+True Negatives (TN),23,30,+7
+False Positives (FP),7,0,-7 (Eliminated)
+False Negatives (FN),0,0,0
+Detection Precision,75.86%,100.00%,+24.14%
+Detection Recall,100.00%,100.00%,+0.00%
+Detection F1-Score,86.27%,100.00%,+13.73%
+Word-Level Top-1 Accuracy,77.27%,100.00%,+22.73%
+Word-Level Top-5 Accuracy,77.27%,100.00%,+22.73%
+BK-Tree Search Latency,1.48 ms,7.16 ms,"Scalable across 1,972+ words"

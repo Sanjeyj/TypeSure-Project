@@ -73,6 +73,7 @@ from typesure.auth import (
     login_user,
     logout_user,
     login_required,
+    rate_limit,
 )
 from typesure.spellchecker import check_text
 from typesure.dictionary_loader import dictionary as tamil_dict, MAX_IMPORT_SIZE_BYTES
@@ -290,6 +291,7 @@ def healthz():
 # ─── Authentication API Endpoints ────────────────────────────────────────────
 
 @app.route("/api/auth/register", methods=["POST"])
+@rate_limit(max_requests=10, window_seconds=60)
 def api_auth_register():
     """
     POST /api/auth/register
@@ -331,6 +333,7 @@ def api_auth_register():
 
 
 @app.route("/api/auth/login", methods=["POST"])
+@rate_limit(max_requests=10, window_seconds=60)
 def api_auth_login():
     """
     POST /api/auth/login
@@ -389,6 +392,7 @@ def api_auth_me():
 
 
 @app.route("/api/auth/forgot-password", methods=["POST"])
+@rate_limit(max_requests=5, window_seconds=60)
 def api_auth_forgot_password():
     """
     POST /api/auth/forgot-password

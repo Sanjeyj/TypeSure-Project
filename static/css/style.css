@@ -8,48 +8,47 @@
    1. Design Tokens
    -------------------------------------------------------------------------- */
 :root {
-  /* Brand Palette (Exact Specifications) */
-  --forest:          #153C32;
-  --forest-deep:     #0d2620;
-  --sage:            #28745B;
-  --sage-light:      #eaf3ee;
-  --ivory:           #F7F5EF;
-  --ivory-warm:      #f0ece2;
-  --gold:            #D8B875;
-  --gold-hover:      #c7a65f;
-  --gold-light:      #faf6ec;
-  --charcoal:        #292D2A;
+  /* Brand Palette (Exact Specifications: Forest Green + Sand Beige + Electric Purple) */
+  --forest:          #1F3D2B;
+  --forest-deep:     #14281C;
+  --sand:            #E8DCC4;
+  --sand-light:      #FAF6EE;
+  --purple:          #8B5CF6;
+  --purple-hover:    #7C3AED;
+  --purple-light:    #F5F3FF;
+  --charcoal:        #1A1F1C;
   --white:           #FFFFFF;
-  --grey:            #777C76;
-  --soft-border:     #E5E4DC;
-  --error-red:       #B94B4B;
+  --grey:            #6B7280;
+  --soft-border:     #D8CEB9;
+  --error-red:       #DC2626;
 
-  /* Semantic Variables (Light Theme - 60% Ivory/White, 25% Forest, 10% Sage/Grey, 5% Gold) */
-  --color-bg:              var(--ivory);
+  /* Semantic Variables (Light Theme) */
+  --color-bg:              var(--sand-light);
   --color-surface:         var(--white);
-  --color-surface-hover:   #f9f8f4;
+  --color-surface-hover:   #F3EDE0;
   --color-primary:         var(--forest);
   --color-primary-deep:    var(--forest-deep);
-  --color-secondary:       var(--sage);
-  --color-accent:          var(--gold);
+  --color-secondary:       #2A5239;
+  --color-accent:          var(--purple);
+  --color-accent-hover:    var(--purple-hover);
   --color-text:            var(--charcoal);
-  --color-text-secondary:  #494f48;
+  --color-text-secondary:  #374151;
   --color-text-muted:      var(--grey);
   --color-border:          var(--soft-border);
-  --color-border-light:    #ecebe4;
+  --color-border-light:    #E5DEC9;
 
   /* States */
-  --color-warning:         #a67c1a;
-  --color-warning-bg:      #fdf8ed;
-  --color-warning-border:  #ecd89e;
+  --color-warning:         #B45309;
+  --color-warning-bg:      #FEF3C7;
+  --color-warning-border:  #FCD34D;
   --color-danger:          var(--error-red);
-  --color-danger-bg:       #fcf2f2;
-  --color-danger-border:   #e8baba;
-  --color-success:         var(--sage);
-  --color-success-bg:      var(--sage-light);
-  --color-info:            #245d8a;
-  --color-info-bg:         #eef4fa;
-  --color-info-border:     #b0cde6;
+  --color-danger-bg:       #FEE2E2;
+  --color-danger-border:   #FCA5A5;
+  --color-success:         #059669;
+  --color-success-bg:      #D1FAE5;
+  --color-info:            #2563EB;
+  --color-info-bg:         #DBEAFE;
+  --color-info-border:     #93C5FD;
 
   /* Typography */
   --font-ui:    'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -223,13 +222,14 @@ ul, ol { list-style: none; }
 
 .btn-accent {
   background: var(--color-accent);
-  color: var(--charcoal);
+  color: #FFFFFF;
   border-color: var(--color-accent);
   font-weight: 700;
 }
 .btn-accent:hover {
-  background: var(--gold-hover);
-  border-color: var(--gold-hover);
+  background: var(--color-accent-hover);
+  border-color: var(--color-accent-hover);
+  color: #FFFFFF;
 }
 
 .btn-outline {
@@ -1747,38 +1747,38 @@ button:focus-visible {
 
 /* ==========================================================================
    28. Dark Theme [data-theme="dark"]
-   Deep Charcoal + Dark Forest Green Surfaces + Soft Ivory Typography + Gold
+   Deep Charcoal + Forest Green Surfaces + Sand Beige Typography + Electric Purple
    ========================================================================== */
 [data-theme="dark"] {
-  --color-bg:              #161917;
-  --color-surface:         #1F2623;
-  --color-surface-hover:   #252E2A;
-  --color-primary:         #2E8468;
-  --color-primary-deep:    #246E56;
-  --color-secondary:       #3A987A;
-  --color-accent:          #D8B875;
-  --color-text:            #F7F5EF;
-  --color-text-secondary:  #C8C7BE;
-  --color-text-muted:      #8F948D;
-  --color-border:          #2C3631;
-  --color-border-light:    #242D29;
+  --color-bg:              #121614;
+  --color-surface:         #1A221D;
+  --color-surface-hover:   #232E27;
+  --color-primary:         #2D5A3F;
+  --color-primary-deep:    #1F3D2B;
+  --color-secondary:       #3A7050;
+  --color-accent:          #A78BFA;
+  --color-accent-hover:    #8B5CF6;
+  --color-text:            #FAF6EE;
+  --color-text-secondary:  #D1D5DB;
+  --color-text-muted:      #9CA3AF;
+  --color-border:          #2A362E;
+  --color-border-light:    #222C26;
 
-  --color-warning:         #D4A537;
-  --color-warning-bg:      #2A2415;
-  --color-warning-border:  #4E3F1F;
-  --color-danger:          #D96B6B;
-  --color-danger-bg:       #2D1C1C;
-  --color-danger-border:   #5C2B2B;
-  --color-success:         #3A987A;
-  --color-success-bg:      #1A2C24;
-  --color-info:            #4C90C7;
-  --color-info-bg:         #192833;
-  --color-info-border:     #2D4C66;
+  --color-warning:         #FBBF24;
+  --color-warning-bg:      #2A2008;
+  --color-warning-border:  #5C430B;
+  --color-danger:          #F87171;
+  --color-danger-bg:       #2D1212;
+  --color-danger-border:   #5C1E1E;
+  --color-success:         #34D399;
+  --color-success-bg:      #0D281E;
+  --color-info:            #60A5FA;
+  --color-info-bg:         #0E1E33;
+  --color-info-border:     #1D3D66;
 
-  --ivory:                 #1F2623;
-  --ivory-warm:            #1B221E;
-  --sage-light:            #1B2E26;
-  --white:                 #1F2623;
+  --sand:                  #232E27;
+  --sand-light:            #121614;
+  --white:                 #1A221D;
 }
 
 [data-theme="dark"] .site-header,
